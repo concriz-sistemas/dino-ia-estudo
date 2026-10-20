@@ -37,8 +37,19 @@ pip install -r requirements.txt
 **Todos os comandos rodam a partir da raiz do repositório**, por exemplo:
 
 ```bash
-python licoes/01-neuronio-e-gradiente/treinar_do_zero.py
+python licoes/01-neuronio-e-gradiente/treinar_do_zero.py --ao-vivo   # assiste o treino numa janela
 ```
+
+## Para ver o aprendizado acontecendo
+
+| Lição | Comando | O que aparece |
+|---|---|---|
+| 1 | `python licoes/01-neuronio-e-gradiente/treinar_do_zero.py --ao-vivo` | Janela com a fronteira da rede, a perda, os pesos e o gradiente mudando a cada época |
+| 2 | `python licoes/02-o-ambiente/jogar.py` | Você joga e vê os sensores que a IA recebe |
+| 3 | `python licoes/03-neuroevolucao/treinar.py` | 50 dinos jogando ao mesmo tempo, geração após geração (sem `--rapido`!) |
+| 3 | `python licoes/03-neuroevolucao/assistir.py` | O campeão jogando com a rede desenhada ao lado. ← → troca de geração |
+
+Os scripts sem janela (`--rapido`, `relatorio.py` e a lição 1 sem `--ao-vivo`) só gravam arquivos em `resultados/`. Para ver os gráficos, abra os PNGs ou o README da lição.
 
 ---
 

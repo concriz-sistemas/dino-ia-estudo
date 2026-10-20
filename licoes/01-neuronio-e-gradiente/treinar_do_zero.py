@@ -14,7 +14,10 @@ O problema (inspirado no dino):
     E quanto mais rápido o jogo, mais longe essa faixa fica.
 
 Rode a partir da raiz do repositório:
-    python licoes/01-neuronio-e-gradiente/treinar_do_zero.py
+    python licoes/01-neuronio-e-gradiente/treinar_do_zero.py            # treina e salva os gráficos
+    python licoes/01-neuronio-e-gradiente/treinar_do_zero.py --ao-vivo  # assiste o treino numa janela
+
+No modo --ao-vivo:  ESPAÇO = pausar/continuar,  → = avançar uma época (pausado)
 
 Saídas (em resultados/):
     historico_pesos.csv   — todos os pesos, a perda e a acurácia em cada época
@@ -26,11 +29,14 @@ Saídas (em resultados/):
 """
 import csv
 import os
+import sys
 
 import numpy as np
 import matplotlib
 
-matplotlib.use("Agg")  # gera PNGs sem precisar de janela
+AO_VIVO = "--ao-vivo" in sys.argv
+if not AO_VIVO:
+    matplotlib.use("Agg")  # gera PNGs sem precisar de janela
 import matplotlib.pyplot as plt
 
 PASTA = os.path.dirname(os.path.abspath(__file__))
@@ -310,10 +316,104 @@ def plot_neuronio_unico(X, y, Xn):
 
 
 # ---------------------------------------------------------------------------
+# 6) MODO AO VIVO — o mesmo treino, numa janela que se atualiza
+# ---------------------------------------------------------------------------
+def treinar_ao_vivo(X, y, Xn):
+    p = iniciar_pesos(2, N_OCULTOS)
+    nomes = nomes_dos_pesos(p)
+    fig, axs = plt.subplots(2, 2, figsize=(13, 8))
+    ax_rede, ax_perda, ax_pesos, ax_grad = axs.ravel()
+
+    estado = {"pausado": False, "passo": False}
+
+    def tecla(evento):
+        if evento.key == " ":
+            estado["pausado"] = not estado["pausado"]
+        elif evento.key == "right":
+            estado["passo"] = True
+
+    fig.canvas.mpl_connect("key_press_event", tecla)
+
+    epocas, perdas, acuracias, pesos = [], [], [], []
+    linha_perda, = ax_perda.plot([], [], c="#1c7ed6", label="perda")
+    linha_acc, = ax_perda.plot([], [], c="#2f9e44", label="acurácia")
+    ax_perda.set_xlim(0, EPOCAS)
+    ax_perda.set_ylim(0, 1.05)
+    ax_perda.set_xlabel("época")
+    ax_perda.set_title("Perda caindo, acurácia subindo")
+    ax_perda.legend(loc="center right")
+    ax_perda.grid(alpha=0.3)
+    linhas_pesos = [ax_pesos.plot([], [], lw=1)[0] for _ in nomes]
+    ax_pesos.set_xlim(0, EPOCAS)
+    ax_pesos.set_xlabel("época")
+    ax_pesos.set_title(f"Os {len(nomes)} pesos se ajustando (cada linha é um peso)")
+    ax_pesos.grid(alpha=0.3)
+
+    epoca = 0
+    while epoca <= EPOCAS and plt.fignum_exists(fig.number):
+        if estado["pausado"] and not estado["passo"]:
+            plt.pause(0.05)
+            continue
+        estado["passo"] = False
+
+        y_hat, h = forward(p, Xn)
+        L = perda(y_hat, y)
+        acc = float(np.mean((y_hat > 0.5) == y))
+        g = backward(p, Xn, y, y_hat, h)
+        epocas.append(epoca)
+        perdas.append(L)
+        acuracias.append(acc)
+        pesos.append(achatar(p))
+
+        # No começo tudo muda rápido: desenha toda época. Depois, de 25 em 25.
+        if estado["pausado"] or epoca < 60 or epoca % 25 == 0 or epoca == EPOCAS:
+            ax_rede.clear()
+            D, V, prob = grade_de_previsao(p, resolucao=80)
+            ax_rede.contourf(D, V, prob, levels=20, cmap="RdBu_r", vmin=0, vmax=1, alpha=0.8)
+            ax_rede.contour(D, V, prob, levels=[0.5], colors="k", linewidths=1.5)
+            ax_rede.scatter(X[y[:, 0] == 1, 0], X[y[:, 0] == 1, 1], s=4, c="k", alpha=0.4)
+            ax_rede.set_xlabel("distância")
+            ax_rede.set_ylabel("velocidade")
+            ax_rede.set_title("O que a rede pensa: vermelho = 'pule!', azul = 'espere'")
+
+            linha_perda.set_data(epocas, perdas)
+            linha_acc.set_data(epocas, acuracias)
+            P = np.array(pesos)
+            for i, linha in enumerate(linhas_pesos):
+                linha.set_data(epocas, P[:, i])
+            ax_pesos.set_ylim(P.min() - 0.5, P.max() + 0.5)
+
+            ax_grad.clear()
+            grad = achatar(g)
+            ax_grad.bar(range(len(nomes)), grad, color=np.where(grad > 0, "#e03131", "#1971c2"))
+            ax_grad.set_xticks(range(len(nomes)), nomes, rotation=90, fontsize=7)
+            ax_grad.axhline(0, c="k", lw=0.8)
+            ax_grad.set_title("Gradiente de cada peso agora (o peso anda no sentido CONTRÁRIO)")
+
+            fig.suptitle(f"Época {epoca}/{EPOCAS}   perda={L:.4f}   acurácia={acc:.1%}"
+                         f"      [ESPAÇO pausa  ·  → avança uma época]")
+            fig.tight_layout()
+            plt.pause(0.001)
+
+        if epoca == EPOCAS:
+            break
+        for k in p:
+            p[k] -= TAXA_APRENDIZADO * g[k]
+        epoca += 1
+
+    print(f"Treino ao vivo terminou na época {epoca}. Feche a janela para sair.")
+    plt.show()
+
+
+# ---------------------------------------------------------------------------
 def main():
     X, y = gerar_dados(N_EXEMPLOS)
     Xn = normalizar(X)
     print(f"{N_EXEMPLOS} exemplos, {int(y.sum())} deles são 'pular'.")
+
+    if AO_VIVO:
+        treinar_ao_vivo(X, y, Xn)
+        return
 
     p_teste = iniciar_pesos(2, N_OCULTOS)
     checar_gradiente(p_teste, Xn, y)
@@ -343,6 +443,7 @@ def main():
     print(f"Acurácia em dados novos:     {acc_teste:.1%}")
     print(f"Neurônio único (comparação): {acc_unico:.1%}")
     print(f"Gráficos e CSV em: {SAIDA}")
+    print("Para assistir o treino acontecendo, rode de novo com --ao-vivo")
 
 
 if __name__ == "__main__":
