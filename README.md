@@ -15,7 +15,7 @@ Cada lição é uma pasta com um **README explicando os conceitos**, um **script
 | 1 | [Neurônio e gradiente](licoes/01-neuronio-e-gradiente/README.md) | Peso, viés, ativação, perda, **gradiente**, retropropagação, hiperparâmetros, overfitting — tudo do zero com numpy | ~5 s |
 | 2 | [O ambiente](licoes/02-o-ambiente/README.md) | O jogo em pygame, o que a IA "vê" (sensores), ações e recompensa | você joga |
 | 3 | [Neuroevolução (NEAT)](licoes/03-neuroevolucao/README.md) | Treinar **sem gradiente**, por seleção e mutação. Registro de cada geração, gráficos dos pesos e relatório automático | ~10 s sem janela |
-| 4 | Aprendizado por reforço (PPO) | O mesmo jogo, agora com gradiente e recompensa — a técnica mais próxima do pós-treinamento de LLMs | *em breve* |
+| 4 | [Aprendizado por reforço (PPO)](licoes/04-reforco/README.md) | Um dino aprende por gradiente a partir de recompensas: ator, crítico, vantagem, clip. Onde fica guardado o aprendizado e a ligação com o ajuste de LLMs | ~2 min sem janela |
 
 ---
 
@@ -109,9 +109,27 @@ python licoes/03-neuroevolucao/assistir.py
 
 [Lição 3](licoes/03-neuroevolucao/README.md).
 
-### Passo 4: aprendizado por reforço (em breve)
+### Passo 4: aprendizado por reforço
 
-O mesmo jogo, mas um único dino aprende por gradiente a partir de recompensas (PPO). Junta o gradiente do passo 1 com a nota do passo 3, e é a técnica mais próxima do pós-treinamento de LLMs.
+```bash
+python licoes/04-reforco/treinar.py
+```
+
+Um único dino joga milhares de partidas e ajusta os pesos por gradiente para ganhar mais recompensa (`+0.1` por quadro vivo, `−1` ao bater). Junta o gradiente do passo 1 com a nota do passo 3. Leva uns 2 minutos, sem janela. Depois, gere os gráficos:
+
+```bash
+python licoes/04-reforco/relatorio.py
+```
+
+E veja o dino jogando, com a chance de cada ação e o valor esperado ao lado (← → troca de modelo salvo):
+
+```bash
+python licoes/04-reforco/assistir.py
+```
+
+![modelos da lição 4](licoes/04-reforco/resultados/modelos.gif)
+
+A lição também responde onde fica guardado o aprendizado (num arquivo de pesos, como um LLM) e mostra a ligação com o ajuste de LLMs. [Lição 4](licoes/04-reforco/README.md).
 
 ### Gravando as animações
 
@@ -123,6 +141,10 @@ python licoes/01-neuronio-e-gradiente/treinar_do_zero.py --gif
 
 ```bash
 python licoes/03-neuroevolucao/assistir.py --gif
+```
+
+```bash
+python licoes/04-reforco/assistir.py --gif
 ```
 
 ---
@@ -141,13 +163,20 @@ dino-ia-estudo/
     ├── 02-o-ambiente/
     │   ├── README.md
     │   └── jogar.py                  # você joga e vê os sensores da IA
-    └── 03-neuroevolucao/
+    ├── 03-neuroevolucao/
+    │   ├── README.md
+    │   ├── config-neat.txt           # os parâmetros da evolução, comentados
+    │   ├── treinar.py                # treina e registra cada geração
+    │   ├── relatorio.py              # gera gráficos + RELATORIO.md
+    │   ├── assistir.py               # vê o campeão de qualquer geração jogando
+    │   └── resultados/               # historico.json, gráficos, RELATORIO.md
+    └── 04-reforco/
         ├── README.md
-        ├── config-neat.txt           # os parâmetros da evolução, comentados
-        ├── treinar.py                # treina e registra cada geração
-        ├── relatorio.py              # gera gráficos + RELATORIO.md
-        ├── assistir.py               # vê o campeão de qualquer geração jogando
-        └── resultados/               # historico.json, gráficos, RELATORIO.md
+        ├── ambiente.py               # o jogo no formato Gymnasium (observação, ação, recompensa)
+        ├── treinar.py                # treina com PPO e salva o modelo em vários momentos
+        ├── relatorio.py              # gráficos, mapa de decisão + RELATORIO.md
+        ├── assistir.py               # o dino jogando, com a cabeça dele ao lado
+        └── resultados/modelos/       # o aprendizado: arquivos com os pesos da rede
 ```
 
 ---
@@ -190,3 +219,5 @@ A neuroevolução da **Lição 3** não é usada para treinar LLMs (seria lenta 
 - [matplotlib](https://matplotlib.org/) — gráficos
 - [pygame](https://www.pygame.org/) — o jogo (janela, desenho, teclado)
 - [neat-python](https://github.com/CodeReclaimers/neat-python) — o algoritmo NEAT
+- [Gymnasium](https://gymnasium.farama.org/) — o formato padrão de ambientes de reforço
+- [Stable-Baselines3](https://stable-baselines3.readthedocs.io/) — o algoritmo PPO (usa o [PyTorch](https://pytorch.org/), que é um download grande)
