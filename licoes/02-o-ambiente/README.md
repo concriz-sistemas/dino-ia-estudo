@@ -78,3 +78,12 @@ O `Jogo` aceita `n_dinos`. Todos enfrentam **os mesmos obstáculos** na mesma pa
 3. No `dino/jogo.py`, mude `FORCA_PULO` para `-12`. O jogo continua possível?
 
 **Próxima lição:** [neuroevolução — 50 dinos evoluindo](../03-neuroevolucao/README.md)
+
+---
+
+## Trocando as figuras
+
+O dino, os cactos e o pássaro são desenhados em [`dino/sprites.py`](../../dino/sprites.py) como **texto**: `#` é um pixel pintado, `w` é branco e `.` é transparente. Mude os desenhos e crie o personagem que quiser.
+
+Isso é **só visual**. Para o jogo, cada coisa continua sendo um retângulo (`rect` em `jogo.py`), e a colisão e os sensores usam esses retângulos. A IA nunca vê as figuras, só os 6 números. Por isso trocar o desenho não muda nada no aprendizado.
+

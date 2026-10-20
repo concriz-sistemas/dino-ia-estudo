@@ -13,6 +13,11 @@ Controles: ESPAÇO / ↑ = pular,  ↓ = abaixar,  R = reiniciar
 import random
 import pygame
 
+try:
+    from dino import sprites
+except ImportError:  # rodando "python dino/jogo.py" direto
+    import sprites
+
 # ---------------------------------------------------------------------------
 # Constantes do mundo
 # ---------------------------------------------------------------------------
@@ -30,6 +35,7 @@ NADA, PULAR, ABAIXAR = 0, 1, 2
 COR_FUNDO = (247, 247, 247)
 COR_CHAO = (83, 83, 83)
 COR_OBSTACULO = (60, 60, 60)
+COR_NUVEM = (205, 205, 205)
 
 
 # ---------------------------------------------------------------------------
@@ -116,6 +122,7 @@ class Jogo:
         self.obstaculos = []
         self.vel = VEL_INICIAL
         self.quadro = 0
+        self.distancia = 0.0       # só para rolar o cenário (chão e nuvens)
         self._proximo_gap = 0
 
     def _cor_aleatoria(self):
@@ -160,6 +167,7 @@ class Jogo:
             else:
                 dino.pontos += 1
 
+        self.distancia += self.vel
         self.vel = min(VEL_MAX, self.vel + ACELERACAO)
 
     # ---- o que a IA "enxerga" -------------------------------------------
@@ -188,16 +196,57 @@ class Jogo:
         return [dist, larg, alt, elev, altura_dino, vel]
 
     # ---- desenho ---------------------------------------------------------
-    def desenhar(self, tela, fonte, linhas_info=(), destacar=None):
+    def _desenhar_cenario(self, tela):
         tela.fill(COR_FUNDO)
+        # Nuvens andam mais devagar que o chão (parece que estão longe)
+        for x0, y in [(100, 50), (420, 80), (700, 40), (950, 70)]:
+            x = (x0 - self.distancia * 0.15) % (LARGURA + 150) - 75
+            tela.blit(sprites.figura("nuvem", sprites.NUVEM, COR_NUVEM, (60, 15)), (x, y))
         pygame.draw.line(tela, COR_CHAO, (0, CHAO_Y), (LARGURA, CHAO_Y), 2)
+        # Pedrinhas no chão, rolando na velocidade do jogo
+        for i in range(40):
+            x = (i * 53 + i * i * 7 - self.distancia) % (LARGURA + 20) - 10
+            y = CHAO_Y + 5 + (i * 37) % 12
+            pygame.draw.line(tela, COR_CHAO, (x, y), (x + 2 + i % 4, y), 1)
+
+    def _desenhar_obstaculo(self, tela, o):
+        tamanho = o.rect.size
+        if o.tipo == "cactos_grupo":
+            img = sprites.grupo_de_cactos(COR_OBSTACULO, tamanho)
+        elif o.eh_passaro:
+            asa = (self.quadro // 10) % 2
+            img = sprites.figura(f"passaro{asa}", [sprites.PASSARO_1, sprites.PASSARO_2][asa],
+                                 COR_OBSTACULO, tamanho)
+        else:
+            img = sprites.figura("cacto", sprites.CACTO, COR_OBSTACULO, tamanho)
+        tela.blit(img, o.rect)
+
+    def _desenhar_dino(self, tela, d, alfa):
+        perna = (self.quadro // 6) % 2
+        if not d.vivo:
+            nome, mapa = "bateu", sprites.DINO_BATEU
+        elif not d.no_chao:
+            nome, mapa = "pulando", sprites.DINO_PULANDO
+        elif d.abaixado:
+            nome, mapa = f"abaixado{perna}", [sprites.DINO_ABAIXADO_1, sprites.DINO_ABAIXADO_2][perna]
+        else:
+            nome, mapa = f"correndo{perna}", [sprites.DINO_CORRENDO_1, sprites.DINO_CORRENDO_2][perna]
+        tela.blit(sprites.figura(nome, mapa, d.cor, d.rect.size, alfa), d.rect)
+
+    def desenhar(self, tela, fonte, linhas_info=(), destacar=None):
+        self._desenhar_cenario(tela)
 
         for o in self.obstaculos:
-            pygame.draw.rect(tela, COR_OBSTACULO, o.rect, border_radius=3)
+            self._desenhar_obstaculo(tela, o)
 
+        # Com muitos dinos, eles ficam meio transparentes para dar para ver a multidão.
+        # Com um só, ele aparece inteiro, e continua na tela depois de bater.
+        sozinho = len(self.dinos) == 1
         for d in self.dinos:
-            if d.vivo:
-                pygame.draw.rect(tela, d.cor, d.rect, border_radius=4)
+            if d is not destacar and (d.vivo or sozinho):
+                self._desenhar_dino(tela, d, 255 if sozinho else 110)
+        if destacar is not None and (destacar.vivo or sozinho):
+            self._desenhar_dino(tela, destacar, 255)
 
         # Linha do "sensor": do dino destacado até o obstáculo que ele está olhando
         if destacar is not None and destacar.vivo:

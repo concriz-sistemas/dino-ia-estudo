@@ -132,6 +132,7 @@ python licoes/03-neuroevolucao/assistir.py --gif
 ```
 dino-ia-estudo/
 ├── dino/jogo.py                      # o jogo (usado nas lições 2, 3 e 4)
+├── dino/sprites.py                   # as figuras em pixel art, editáveis como texto
 └── licoes/
     ├── 01-neuronio-e-gradiente/
     │   ├── README.md                 # a teoria, com os gráficos
