@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store
+
+# Campeões salvos em formato binário (pickle) — gerados ao rodar o treino.
+# O historico.json, os gráficos e o RELATORIO.md ficam no repositório como exemplo.
+*.pkl
