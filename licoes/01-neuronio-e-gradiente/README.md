@@ -140,6 +140,22 @@ Cada linha é um dos 25 números. O CSV [`resultados/historico_pesos.csv`](resul
 - **Época 300:** já encontrou a faixa, ainda borrada.
 - **Época 4000:** faixa nítida, praticamente igual à regra verdadeira.
 
+### Por que a forma aparece rápido e depois "para"?
+
+No replay (`--ao-vivo`) dá para ver que a faixa surge nas primeiras centenas de épocas e depois quase não muda. São duas fases:
+
+1. **Descida rápida (épocas 0 a ~300).** Com pesos aleatórios, a rede erra muito, então o gradiente é grande. Como o passo é `taxa × gradiente`, os passos também são grandes, e a forma aparece. A perda despenca.
+2. **Ajuste fino (de ~300 em diante).** A rede já está perto do fundo do vale da perda. O terreno fica plano, o gradiente fica pequeno (veja o "tamanho total" no painel de gradiente cair de ~1 na época 0 para ~0,03 na 300 e ~0,002 na 4000) e cada passo mexe muito pouco nos pesos. Isso se chama **convergência**.
+
+A forma não fica totalmente parada: os pesos continuam crescendo devagar (painel de pesos), e isso deixa as bordas da faixa mais **nítidas**. A rede está ficando mais *confiante*. Com a entropia cruzada, sempre dá para baixar a perda mais um pouquinho apostando com mais certeza, então os pesos crescem sem parar, cada vez mais devagar.
+
+**Tem a ver com regressão linear?** Tem, e muito. Cada neurônio faz `w₁·x₁ + w₂·x₂ + b`, exatamente a fórmula da regressão linear. Colocando uma sigmoide em cima, vira **regressão logística**: é o "neurônio único" da seção 6, que só traça uma reta. A rede desta lição são 6 dessas retas (com `tanh`) combinadas pela camada de saída. É assim que duas bordas viram uma faixa.
+
+**E cosseno?** Não aparece aqui. As curvas em "S" são a `tanh` e a sigmoide, e a descida da perda parece um decaimento, sem nada periódico. Ondas só aparecem se a taxa de aprendizado for grande demais e a perda ficar quicando (exercício 1). O cosseno aparece em outros pontos da IA:
+
+- **Similaridade de cosseno:** mede o quanto dois vetores apontam para o mesmo lado. É como LLMs e buscadores comparam o "significado" de textos (embeddings).
+- **Agenda de cosseno (*cosine schedule*):** em vez de uma taxa de aprendizado fixa como aqui, a taxa começa alta e vai diminuindo seguindo meia onda de cosseno. É comum no treino de LLMs: passos grandes no começo, passos pequenos no ajuste fino, as mesmas duas fases que você vê no replay.
+
 ---
 
 ## 6. Por que precisamos de uma camada oculta?

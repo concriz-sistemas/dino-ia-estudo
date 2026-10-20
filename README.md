@@ -4,7 +4,7 @@ Um curso prático e em português: do primeiro neurônio escrito à mão até um
 
 Cada lição é uma pasta com um **README explicando os conceitos**, um **script curto e comentado** e os **gráficos gerados** pelo próprio script, para você ver o aprendizado acontecendo.
 
-![redes dos campeões](licoes/03-neuroevolucao/resultados/06_redes.png)
+![campeões de várias gerações](licoes/03-neuroevolucao/resultados/campeoes.gif)
 
 ---
 
@@ -57,16 +57,73 @@ python licoes/01-neuronio-e-gradiente/treinar_do_zero.py --ao-vivo
 
 Toda vez que abrir um terminal novo, rode `source .venv/bin/activate` antes, ou o Python não vai achar as bibliotecas.
 
-## Para ver o aprendizado acontecendo
+## Passo a passo
 
-| Lição | Comando | O que aparece |
-|---|---|---|
-| 1 | `python licoes/01-neuronio-e-gradiente/treinar_do_zero.py --ao-vivo` | Janela com a fronteira da rede, a perda, os pesos e o gradiente mudando a cada época |
-| 2 | `python licoes/02-o-ambiente/jogar.py` | Você joga e vê os sensores que a IA recebe |
-| 3 | `python licoes/03-neuroevolucao/treinar.py` | 50 dinos jogando ao mesmo tempo, geração após geração (sem `--rapido`!) |
-| 3 | `python licoes/03-neuroevolucao/assistir.py` | O campeão jogando com a rede desenhada ao lado. ← → troca de geração |
+Faça as lições na ordem. Cada passo tem um comando, o que você vai ver e o que aprende com ele. Antes de tudo, em cada terminal novo:
 
-Os scripts sem janela (`--rapido`, `relatorio.py` e a lição 1 sem `--ao-vivo`) só gravam arquivos em `resultados/`. Para ver os gráficos, abra os PNGs ou o README da lição.
+```bash
+source .venv/bin/activate
+```
+
+### Passo 1: uma rede neural aprendendo com gradiente
+
+```bash
+python licoes/01-neuronio-e-gradiente/treinar_do_zero.py --ao-vivo
+```
+
+O terminal mostra as primeiras contas do gradiente, peso por peso. Depois abre o replay do treino:
+
+![replay da lição 1](licoes/01-neuronio-e-gradiente/resultados/treino.gif)
+
+Teclas: **ESPAÇO** pausa, **← →** anda uma época, **↑ ↓** muda a velocidade, **R** recomeça.
+
+Repare que a faixa vermelha surge rápido e depois só fica mais nítida, enquanto as barras do gradiente encolhem. A explicação está em [Por que a forma aparece rápido e depois "para"?](licoes/01-neuronio-e-gradiente/README.md#por-que-a-forma-aparece-rápido-e-depois-para).
+
+### Passo 2: o jogo que a IA vai jogar
+
+```bash
+python licoes/02-o-ambiente/jogar.py
+```
+
+Você joga (ESPAÇO pula, ↓ abaixa) e vê no canto os 6 números que a IA recebe no lugar dos olhos. [Lição 2](licoes/02-o-ambiente/README.md).
+
+### Passo 3: 50 dinos evoluindo
+
+```bash
+python licoes/03-neuroevolucao/treinar.py
+```
+
+Cada geração, 50 dinos com redes diferentes jogam juntos; os melhores têm filhos com mutações. A tecla V acelera. Depois, gere os gráficos e o relatório:
+
+```bash
+python licoes/03-neuroevolucao/relatorio.py
+```
+
+E veja o campeão de cada geração jogando, com a rede desenhada ao lado (← → troca de geração):
+
+```bash
+python licoes/03-neuroevolucao/assistir.py
+```
+
+![campeões de várias gerações](licoes/03-neuroevolucao/resultados/campeoes.gif)
+
+[Lição 3](licoes/03-neuroevolucao/README.md).
+
+### Passo 4: aprendizado por reforço (em breve)
+
+O mesmo jogo, mas um único dino aprende por gradiente a partir de recompensas (PPO). Junta o gradiente do passo 1 com a nota do passo 3, e é a técnica mais próxima do pós-treinamento de LLMs.
+
+### Gravando as animações
+
+Os GIFs desta página são gerados pelos próprios scripts:
+
+```bash
+python licoes/01-neuronio-e-gradiente/treinar_do_zero.py --gif
+```
+
+```bash
+python licoes/03-neuroevolucao/assistir.py --gif
+```
 
 ---
 
