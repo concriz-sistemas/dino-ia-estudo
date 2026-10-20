@@ -16,10 +16,13 @@ O problema (inspirado no dino):
 Rode a partir da raiz do repositório:
     # treina e salva os gráficos
     python licoes/01-neuronio-e-gradiente/treinar_do_zero.py
-    # assiste o treino numa janela
+    # treina e depois toca o treino numa janela, como um vídeo
     python licoes/01-neuronio-e-gradiente/treinar_do_zero.py --ao-vivo
+    # grava o mesmo replay em resultados/treino.gif
+    python licoes/01-neuronio-e-gradiente/treinar_do_zero.py --gif
 
-No modo --ao-vivo:  ESPAÇO = pausar/continuar,  → = avançar uma época (pausado)
+No replay:  ESPAÇO = pausar/continuar,  ← → = voltar/avançar uma época,
+            ↑ ↓ = mais rápido/mais devagar,  R = recomeçar
 
 Saídas (em resultados/):
     historico_pesos.csv   — todos os pesos, a perda e a acurácia em cada época
@@ -32,11 +35,13 @@ Saídas (em resultados/):
 import csv
 import os
 import sys
+import warnings
 
 import numpy as np
 import matplotlib
 
 AO_VIVO = "--ao-vivo" in sys.argv
+GIF = "--gif" in sys.argv
 if not AO_VIVO:
     matplotlib.use("Agg")  # gera PNGs sem precisar de janela
 import matplotlib.pyplot as plt
@@ -318,93 +323,152 @@ def plot_neuronio_unico(X, y, Xn):
 
 
 # ---------------------------------------------------------------------------
-# 6) MODO AO VIVO — o mesmo treino, numa janela que se atualiza
+# 6) REPLAY — o treino gravado, tocado como um vídeo
 # ---------------------------------------------------------------------------
-def treinar_ao_vivo(X, y, Xn):
-    p = iniciar_pesos(2, N_OCULTOS)
-    nomes = nomes_dos_pesos(p)
-    fig, axs = plt.subplots(2, 2, figsize=(13, 8))
-    ax_rede, ax_perda, ax_pesos, ax_grad = axs.ravel()
+VELOCIDADES = [1, 2, 5, 10, 25, 50, 100]  # épocas avançadas por quadro
 
-    estado = {"pausado": False, "passo": False}
+
+def desachatar(v, modelo):
+    """O contrário de achatar(): volta a lista de pesos para o formato da rede."""
+    p, i = {}, 0
+    for k in ["W1", "b1", "W2", "b2"]:
+        n = modelo[k].size
+        p[k] = v[i:i + n].reshape(modelo[k].shape)
+        i += n
+    return p
+
+
+class Replay:
+    """Desenha o estado do treino em qualquer época gravada no histórico."""
+
+    def __init__(self, hist, modelo, X, y, Xn):
+        self.h = np.array(hist)
+        self.modelo = modelo
+        self.y, self.Xn = y, Xn
+        self.ultima = int(self.h[-1, 0])
+        nomes = nomes_dos_pesos(modelo)
+
+        self.fig, axs = plt.subplots(2, 2, figsize=(13, 8))
+        self.ax_rede, self.ax_perda, self.ax_pesos, self.ax_grad = axs.ravel()
+
+        self.D, self.V, prob = grade_de_previsao(self.pesos(0), resolucao=80)
+        self.imagem = self.ax_rede.imshow(prob, origin="lower", extent=(0, 1, 0, 1), aspect="auto",
+                                          cmap="RdBu_r", vmin=0, vmax=1, alpha=0.85)
+        self.contorno = None
+        self.ax_rede.scatter(X[y[:, 0] == 1, 0], X[y[:, 0] == 1, 1], s=4, c="k", alpha=0.4)
+        self.ax_rede.set_xlabel("distância")
+        self.ax_rede.set_ylabel("velocidade")
+        self.ax_rede.set_title("O que a rede pensa: vermelho = 'pule!', azul = 'espere'")
+
+        self.linha_perda, = self.ax_perda.plot([], [], c="#1c7ed6", label="perda")
+        self.linha_acc, = self.ax_perda.plot([], [], c="#2f9e44", label="acurácia")
+        self.ax_perda.set_xlim(0, self.ultima)
+        self.ax_perda.set_ylim(0, max(1.05, self.h[:, 1].max() * 1.05))
+        self.ax_perda.set_xlabel("época")
+        self.ax_perda.set_title("Perda caindo, acurácia subindo")
+        self.ax_perda.legend(loc="center right")
+        self.ax_perda.grid(alpha=0.3)
+
+        pesos = self.h[:, 4:]
+        self.linhas_pesos = [self.ax_pesos.plot([], [], lw=1)[0] for _ in nomes]
+        self.ax_pesos.set_xlim(0, self.ultima)
+        self.ax_pesos.set_ylim(pesos.min() - 0.5, pesos.max() + 0.5)
+        self.ax_pesos.set_xlabel("época")
+        self.ax_pesos.set_title(f"Os {len(nomes)} pesos se ajustando (cada linha é um peso)")
+        self.ax_pesos.grid(alpha=0.3)
+        self.marcas = [self.ax_perda.axvline(0, c="k", lw=0.8, alpha=0.4),
+                       self.ax_pesos.axvline(0, c="k", lw=0.8, alpha=0.4)]
+
+        self.barras = self.ax_grad.bar(range(len(nomes)), np.zeros(len(nomes)))
+        self.ax_grad.set_xticks(range(len(nomes)), nomes, rotation=90, fontsize=7)
+        self.ax_grad.axhline(0, c="k", lw=0.8)
+
+        self.fig.text(0.5, 0.005, "ESPAÇO pausa  ·  ← → uma época  ·  ↑ ↓ velocidade  ·  R recomeça",
+                      ha="center", fontsize=9, color="#555")
+        self.fig.tight_layout(rect=(0, 0.02, 1, 0.96))
+
+    def pesos(self, epoca):
+        return desachatar(self.h[epoca, 4:], self.modelo)
+
+    def desenhar(self, epoca, status=""):
+        h = self.h
+        p = self.pesos(epoca)
+
+        _, _, prob = grade_de_previsao(p, resolucao=80)
+        self.imagem.set_data(prob)
+        if self.contorno is not None:
+            self.contorno.remove()
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")  # sem fronteira ainda (tudo azul) gera um aviso
+            self.contorno = self.ax_rede.contour(self.D, self.V, prob, levels=[0.5],
+                                                 colors="k", linewidths=1.5)
+
+        ate = slice(0, epoca + 1)
+        self.linha_perda.set_data(h[ate, 0], h[ate, 1])
+        self.linha_acc.set_data(h[ate, 0], h[ate, 2])
+        for i, linha in enumerate(self.linhas_pesos):
+            linha.set_data(h[ate, 0], h[ate, 4 + i])
+        for marca in self.marcas:
+            marca.set_xdata([epoca, epoca])
+
+        # O gradiente não fica no histórico, mas é só recalcular com os pesos da época.
+        y_hat, oculta = forward(p, self.Xn)
+        grad = achatar(backward(p, self.Xn, self.y, y_hat, oculta))
+        for barra, g in zip(self.barras, grad):
+            barra.set_height(g)
+            barra.set_color("#e03131" if g > 0 else "#1971c2")
+        lim = max(np.abs(grad).max() * 1.1, 1e-9)
+        self.ax_grad.set_ylim(-lim, lim)
+        self.ax_grad.set_title(f"Gradiente de cada peso (o peso anda no sentido CONTRÁRIO)\n"
+                               f"tamanho total = {h[epoca, 3]:.5f} — escala ajustada a cada quadro",
+                               fontsize=10)
+
+        self.fig.suptitle(f"Época {epoca}/{self.ultima}   perda={h[epoca, 1]:.4f}   "
+                          f"acurácia={h[epoca, 2]:.1%}   {status}")
+
+
+def tocar_replay(replay):
+    for k in ("keymap.back", "keymap.forward", "keymap.home"):
+        plt.rcParams[k] = []  # libera ← → R, que o matplotlib usa para navegar no gráfico
+    estado = {"epoca": 0, "vel": 1, "pausado": False}
 
     def tecla(evento):
         if evento.key == " ":
             estado["pausado"] = not estado["pausado"]
         elif evento.key == "right":
-            estado["passo"] = True
+            estado["epoca"] = min(estado["epoca"] + 1, replay.ultima)
+            estado["pausado"] = True
+        elif evento.key == "left":
+            estado["epoca"] = max(estado["epoca"] - 1, 0)
+            estado["pausado"] = True
+        elif evento.key in ("up", "+", "="):
+            estado["vel"] = min(estado["vel"] + 1, len(VELOCIDADES) - 1)
+        elif evento.key in ("down", "-"):
+            estado["vel"] = max(estado["vel"] - 1, 0)
+        elif evento.key == "r":
+            estado["epoca"], estado["pausado"] = 0, False
 
-    fig.canvas.mpl_connect("key_press_event", tecla)
+    replay.fig.canvas.mpl_connect("key_press_event", tecla)
+    while plt.fignum_exists(replay.fig.number):
+        vel = VELOCIDADES[estado["vel"]]
+        status = "[PAUSADO]" if estado["pausado"] else f"[{vel} época(s) por quadro]"
+        replay.desenhar(estado["epoca"], status)
+        plt.pause(1 / 30)
+        if not estado["pausado"]:
+            if estado["epoca"] >= replay.ultima:
+                estado["pausado"] = True
+            else:
+                estado["epoca"] = min(estado["epoca"] + vel, replay.ultima)
 
-    epocas, perdas, acuracias, pesos = [], [], [], []
-    linha_perda, = ax_perda.plot([], [], c="#1c7ed6", label="perda")
-    linha_acc, = ax_perda.plot([], [], c="#2f9e44", label="acurácia")
-    ax_perda.set_xlim(0, EPOCAS)
-    ax_perda.set_ylim(0, 1.05)
-    ax_perda.set_xlabel("época")
-    ax_perda.set_title("Perda caindo, acurácia subindo")
-    ax_perda.legend(loc="center right")
-    ax_perda.grid(alpha=0.3)
-    linhas_pesos = [ax_pesos.plot([], [], lw=1)[0] for _ in nomes]
-    ax_pesos.set_xlim(0, EPOCAS)
-    ax_pesos.set_xlabel("época")
-    ax_pesos.set_title(f"Os {len(nomes)} pesos se ajustando (cada linha é um peso)")
-    ax_pesos.grid(alpha=0.3)
 
-    epoca = 0
-    while epoca <= EPOCAS and plt.fignum_exists(fig.number):
-        if estado["pausado"] and not estado["passo"]:
-            plt.pause(0.05)
-            continue
-        estado["passo"] = False
+def gravar_gif(replay, arquivo):
+    from matplotlib.animation import FuncAnimation, PillowWriter
 
-        y_hat, h = forward(p, Xn)
-        L = perda(y_hat, y)
-        acc = float(np.mean((y_hat > 0.5) == y))
-        g = backward(p, Xn, y, y_hat, h)
-        epocas.append(epoca)
-        perdas.append(L)
-        acuracias.append(acc)
-        pesos.append(achatar(p))
-
-        # No começo tudo muda rápido: desenha toda época. Depois, de 25 em 25.
-        if estado["pausado"] or epoca < 60 or epoca % 25 == 0 or epoca == EPOCAS:
-            ax_rede.clear()
-            D, V, prob = grade_de_previsao(p, resolucao=80)
-            ax_rede.contourf(D, V, prob, levels=20, cmap="RdBu_r", vmin=0, vmax=1, alpha=0.8)
-            ax_rede.contour(D, V, prob, levels=[0.5], colors="k", linewidths=1.5)
-            ax_rede.scatter(X[y[:, 0] == 1, 0], X[y[:, 0] == 1, 1], s=4, c="k", alpha=0.4)
-            ax_rede.set_xlabel("distância")
-            ax_rede.set_ylabel("velocidade")
-            ax_rede.set_title("O que a rede pensa: vermelho = 'pule!', azul = 'espere'")
-
-            linha_perda.set_data(epocas, perdas)
-            linha_acc.set_data(epocas, acuracias)
-            P = np.array(pesos)
-            for i, linha in enumerate(linhas_pesos):
-                linha.set_data(epocas, P[:, i])
-            ax_pesos.set_ylim(P.min() - 0.5, P.max() + 0.5)
-
-            ax_grad.clear()
-            grad = achatar(g)
-            ax_grad.bar(range(len(nomes)), grad, color=np.where(grad > 0, "#e03131", "#1971c2"))
-            ax_grad.set_xticks(range(len(nomes)), nomes, rotation=90, fontsize=7)
-            ax_grad.axhline(0, c="k", lw=0.8)
-            ax_grad.set_title("Gradiente de cada peso agora (o peso anda no sentido CONTRÁRIO)")
-
-            fig.suptitle(f"Época {epoca}/{EPOCAS}   perda={L:.4f}   acurácia={acc:.1%}"
-                         f"      [ESPAÇO pausa  ·  → avança uma época]")
-            fig.tight_layout()
-            plt.pause(0.001)
-
-        if epoca == EPOCAS:
-            break
-        for k in p:
-            p[k] -= TAXA_APRENDIZADO * g[k]
-        epoca += 1
-
-    print(f"Treino ao vivo terminou na época {epoca}. Feche a janela para sair.")
-    plt.show()
+    # Devagar no começo, onde tudo acontece; rápido no fim, onde quase nada muda.
+    quadros = (list(range(0, 60, 2)) + list(range(60, 400, 10))
+               + list(range(400, replay.ultima, 100)) + [replay.ultima] * 15)
+    anim = FuncAnimation(replay.fig, replay.desenhar, frames=quadros)
+    anim.save(arquivo, writer=PillowWriter(fps=12), dpi=55)
 
 
 # ---------------------------------------------------------------------------
@@ -412,10 +476,6 @@ def main():
     X, y = gerar_dados(N_EXEMPLOS)
     Xn = normalizar(X)
     print(f"{N_EXEMPLOS} exemplos, {int(y.sum())} deles são 'pular'.")
-
-    if AO_VIVO:
-        treinar_ao_vivo(X, y, Xn)
-        return
 
     p_teste = iniciar_pesos(2, N_OCULTOS)
     checar_gradiente(p_teste, Xn, y)
@@ -445,7 +505,16 @@ def main():
     print(f"Acurácia em dados novos:     {acc_teste:.1%}")
     print(f"Neurônio único (comparação): {acc_unico:.1%}")
     print(f"Gráficos e CSV em: {SAIDA}")
-    print("Para assistir o treino acontecendo, rode de novo com --ao-vivo")
+    if GIF:
+        arquivo = os.path.join(SAIDA, "treino.gif")
+        print("Gravando a animação...")
+        gravar_gif(Replay(hist, p, X, y, Xn), arquivo)
+        print(f"Animação salva em: {arquivo}")
+    if AO_VIVO:
+        print("Abrindo o replay do treino. Feche a janela para sair.")
+        tocar_replay(Replay(hist, p, X, y, Xn))
+    elif not GIF:
+        print("Para assistir o treino como um vídeo, rode de novo com --ao-vivo")
 
 
 if __name__ == "__main__":

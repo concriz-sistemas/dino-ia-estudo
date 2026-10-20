@@ -8,9 +8,22 @@
 python licoes/01-neuronio-e-gradiente/treinar_do_zero.py --ao-vivo
 ```
 
-Abre uma janela e mostra o treino **acontecendo**, época por época: o que a rede pensa, a perda caindo, cada um dos 25 pesos se ajustando e o gradiente de cada peso naquele instante. **ESPAÇO** pausa e, pausado, **→** avança uma única época, para ver um passo de descida de gradiente de cada vez.
+O script treina a rede (uns 5 segundos), grava o valor de cada peso em cada época e depois **toca o treino numa janela, como um vídeo**: o que a rede pensa, a perda caindo, cada um dos 25 pesos se ajustando e o gradiente de cada peso naquele instante.
 
-![ao vivo](resultados/00_ao_vivo.png)
+| Tecla | O que faz |
+|---|---|
+| ESPAÇO | pausa / continua |
+| ← → | volta / avança uma época (para ver um passo de gradiente de cada vez) |
+| ↑ ↓ | mais rápido / mais devagar (de 1 a 100 épocas por quadro) |
+| R | recomeça do zero |
+
+![replay do treino](resultados/treino.gif)
+
+Para gravar essa animação de novo:
+
+```bash
+python licoes/01-neuronio-e-gradiente/treinar_do_zero.py --gif
+```
 
 Sem o `--ao-vivo`, o script treina em uns 5 segundos, explica as primeiras contas no terminal e salva os gráficos e o CSV em [`resultados/`](resultados/), que são os usados no resto desta página.
 
