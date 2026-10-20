@@ -3,6 +3,10 @@
 > **Objetivo:** treinar redes neurais para jogar **sem gradiente**, só com seleção natural,
 > e registrar cada geração para ver os pesos mudando.
 
+![campeões de várias gerações](resultados/campeoes.gif)
+
+*O campeão das gerações 0, 7, 14 e 29 jogando a mesma partida. O da geração 0 bate logo; os seguintes já sabem pular e abaixar.*
+
 Rode um de cada vez, nesta ordem.
 
 1. Assista à evolução. A tecla V acelera:
@@ -30,6 +34,12 @@ python licoes/03-neuroevolucao/assistir.py
 ```
 
 Para treinar sem janela (uns 10 segundos): `treinar.py --rapido`.
+
+Para gravar de novo o GIF dos campeões, depois de treinar:
+
+```bash
+python licoes/03-neuroevolucao/assistir.py --gif
+```
 
 📊 **[Veja o relatório de um treino de exemplo](resultados/RELATORIO.md)**
 
@@ -95,11 +105,13 @@ O `relatorio.py` transforma isso em gráficos e no [`RELATORIO.md`](resultados/R
 
 ## O que observar no relatório de exemplo
 
+O NEAT sorteia mutações, então **cada treino dá números diferentes**. Os valores entre parênteses são do treino de exemplo que está em [`resultados/RELATORIO.md`](resultados/RELATORIO.md). Os do seu treino vão ser outros, mas os padrões se repetem:
+
 - **O melhor sobe aos saltos, a média sobe devagar.** Um dino com sorte chega a 5000 cedo (geração 14 no exemplo), mas a população inteira leva muito mais tempo para melhorar.
-- **A geração 0 teve um dino com 669 pontos e a 1 só 277.** Cada geração joga uma partida **diferente** (outra sequência de obstáculos). O dino da geração 0 teve uma partida fácil. Isso é proposital: se todas as gerações jogassem a mesma fase, os dinos decorariam a fase em vez de aprender a jogar (*overfitting*).
+- **O melhor de uma geração pode ser pior que o da anterior** (300 → 881 → 232 nas gerações 0, 1 e 2 do exemplo). Cada geração joga uma partida **diferente**, com outra sequência de obstáculos, e às vezes a partida é mais difícil. Isso é proposital: se todas jogassem a mesma fase, os dinos decorariam a fase em vez de aprender a jogar (*overfitting*).
 - **A mediana fica baixa** mesmo com a média subindo. A maioria dos filhos sofre mutações ruins e morre cedo. Evolução é desperdício: muitos tentam, poucos dão certo.
-- **As redes ficam mais simples**, não mais complexas. No exemplo, o campeão caiu de 18 para 4 conexões (veja `03_complexidade.png` e `06_redes.png`): poucas conexões fortes, e as inúteis foram removidas pelas mutações.
-- **A conexão mais forte é distância → pular, com peso negativo** (−4,8 no exemplo). Traduzindo: *quanto mais longe o obstáculo, menos vontade de pular*. A regra principal do jogo, descoberta sem ninguém ensinar.
+- **O tamanho da rede varia de treino para treino.** Às vezes as mutações cortam conexões e o campeão fica mais simples do que começou, com 18 conexões; às vezes ele ganha neurônios ocultos (14 conexões e 4 ocultos no exemplo). Veja `03_complexidade.png` e `06_redes.png`. O NEAT não busca a rede "mais bonita", só uma que funcione.
+- **A regra principal sempre aparece: obstáculo longe = não pule.** Às vezes ela vem direto, como uma conexão distância → pular com peso negativo. No exemplo, ela passa por um neurônio oculto: distância → oculto 144 (**+4,45**) e oculto 144 → pular (**−5,10**). Positivo vezes negativo dá negativo, ou seja, a mesma regra por outro caminho. Ninguém ensinou isso aos dinos.
 
 ---
 

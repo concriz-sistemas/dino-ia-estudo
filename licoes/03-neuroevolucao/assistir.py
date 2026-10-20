@@ -6,6 +6,8 @@ Rode a partir da raiz do repositório, depois de treinar:
     python licoes/03-neuroevolucao/assistir.py
     # campeão da geração 0
     python licoes/03-neuroevolucao/assistir.py --geracao 0
+    # grava resultados/campeoes.gif: campeões de várias gerações na mesma partida
+    python licoes/03-neuroevolucao/assistir.py --gif
 
 Teclas: R = nova partida, ← / → = campeão da geração anterior / seguinte, ESC = sair
 
@@ -65,9 +67,45 @@ def desenhar_rede(tela, fonte, genoma, config, entradas, saidas):
         tela.blit(fonte.render(NOMES_SAIDAS[i], True, (40, 40, 40)), (pos[k][0] + 14, pos[k][1] - 7))
 
 
+def gravar_gif(campeoes, config, arquivo):
+    """Campeões de algumas gerações jogando a MESMA partida, um depois do outro."""
+    from PIL import Image
+
+    ultima = len(campeoes) - 1
+    geracoes = sorted({0, ultima // 4, ultima // 2, ultima})
+    pygame.init()
+    tela = pygame.Surface((LARGURA + PAINEL, ALTURA))
+    fonte = pygame.font.SysFont("monospace", 14)
+    quadros = []
+    for g in geracoes:
+        rede = neat.nn.FeedForwardNetwork.create(campeoes[g], config)
+        jogo = Jogo(1, semente=7, cores=[(40, 120, 220)])
+        depois_de_bater = 0
+        while jogo.quadro < 600 and depois_de_bater < 45:
+            dino = jogo.dinos[0]
+            entradas = jogo.sensores(dino)
+            saidas = rede.activate(entradas)
+            if dino.vivo:
+                jogo.passo([ACOES[saidas.index(max(saidas))]])
+            else:
+                depois_de_bater += 1
+            # 1 a cada 4 quadros do jogo; depois de bater, 1 a cada 3 (só para pausar a cena)
+            if (dino.vivo and jogo.quadro % 4 == 0) or (not dino.vivo and depois_de_bater % 3 == 0):
+                info = [f"Campeão da geração {g}", f"Pontos: {dino.pontos}"]
+                if not dino.vivo:
+                    info.append("Bateu!")
+                jogo.desenhar(tela, fonte, info, destacar=dino)
+                desenhar_rede(tela, fonte, campeoes[g], config, entradas, saidas)
+                img = Image.frombytes("RGB", tela.get_size(), pygame.image.tobytes(tela, "RGB"))
+                quadros.append(img.resize((img.width * 3 // 5, img.height * 3 // 5)))
+        print(f"  geração {g}: {jogo.dinos[0].pontos} pontos")
+    quadros[0].save(arquivo, save_all=True, append_images=quadros[1:], duration=66, loop=0, optimize=True)
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--geracao", type=int, default=-1, help="qual geração assistir (padrão: a última)")
+    p.add_argument("--gif", action="store_true", help="grava resultados/campeoes.gif em vez de abrir a janela")
     args = p.parse_args()
 
     arq = os.path.join(PASTA, "resultados", "campeoes.pkl")
@@ -81,6 +119,11 @@ def main():
         neat.DefaultSpeciesSet, neat.DefaultStagnation,
         os.path.join(PASTA, "config-neat.txt"),
     )
+    if args.gif:
+        arquivo = os.path.join(PASTA, "resultados", "campeoes.gif")
+        gravar_gif(campeoes, config, arquivo)
+        print(f"Animação salva em: {arquivo}")
+        return
     idx = args.geracao % len(campeoes)
 
     pygame.init()
