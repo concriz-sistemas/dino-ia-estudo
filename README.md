@@ -23,22 +23,39 @@ Cada lição é uma pasta com um **README explicando os conceitos**, um **script
 
 Precisa de **Python 3.9+**.
 
+Copie e rode um comando de cada vez:
+
 ```bash
-git clone <url-deste-repositório>
+git clone https://github.com/concriz-sistemas/dino-ia-estudo.git
+```
+
+```bash
 cd dino-ia-estudo
+```
 
-python -m venv .venv
-# Windows:      .venv\Scripts\activate
-# Mac / Linux:  source .venv/bin/activate
+```bash
+python3 -m venv .venv
+```
 
+Ative o ambiente. No Mac ou Linux:
+
+```bash
+source .venv/bin/activate
+```
+
+No Windows: `.venv\Scripts\activate`
+
+```bash
 pip install -r requirements.txt
 ```
 
 **Todos os comandos rodam a partir da raiz do repositório**, por exemplo:
 
 ```bash
-python licoes/01-neuronio-e-gradiente/treinar_do_zero.py --ao-vivo   # assiste o treino numa janela
+python licoes/01-neuronio-e-gradiente/treinar_do_zero.py --ao-vivo
 ```
+
+Toda vez que abrir um terminal novo, rode `source .venv/bin/activate` antes, ou o Python não vai achar as bibliotecas.
 
 ## Para ver o aprendizado acontecendo
 

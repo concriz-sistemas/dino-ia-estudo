@@ -2,8 +2,10 @@
 assistir.py — Mostra o campeão de uma geração jogando, com a rede dele ao lado.
 
 Rode a partir da raiz do repositório, depois de treinar:
-    python licoes/03-neuroevolucao/assistir.py               # campeão da última geração
-    python licoes/03-neuroevolucao/assistir.py --geracao 0   # campeão da geração 0
+    # campeão da última geração
+    python licoes/03-neuroevolucao/assistir.py
+    # campeão da geração 0
+    python licoes/03-neuroevolucao/assistir.py --geracao 0
 
 Teclas: R = nova partida, ← / → = campeão da geração anterior / seguinte, ESC = sair
 

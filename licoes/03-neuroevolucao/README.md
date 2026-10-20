@@ -3,11 +3,30 @@
 > **Objetivo:** treinar redes neurais para jogar **sem gradiente**, só com seleção natural,
 > e registrar cada geração para ver os pesos mudando.
 
+Rode um de cada vez, nesta ordem.
+
+1. Assista à evolução. A tecla V acelera:
+
 ```bash
-python licoes/03-neuroevolucao/treinar.py          # assista à evolução (V acelera)
-python licoes/03-neuroevolucao/relatorio.py        # gera gráficos + RELATORIO.md
-python licoes/03-neuroevolucao/assistir.py --geracao 0   # o campeão da geração 0...
-python licoes/03-neuroevolucao/assistir.py               # ...e o da última
+python licoes/03-neuroevolucao/treinar.py
+```
+
+2. Gere os gráficos e o `RELATORIO.md`:
+
+```bash
+python licoes/03-neuroevolucao/relatorio.py
+```
+
+3. Veja o campeão da geração 0:
+
+```bash
+python licoes/03-neuroevolucao/assistir.py --geracao 0
+```
+
+4. E compare com o campeão da última geração. As setas ← → trocam de geração:
+
+```bash
+python licoes/03-neuroevolucao/assistir.py
 ```
 
 Para treinar sem janela (uns 10 segundos): `treinar.py --rapido`.

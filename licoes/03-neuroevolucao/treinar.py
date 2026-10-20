@@ -2,8 +2,10 @@
 Lição 3 — Treina dinossauros com neuroevolução (NEAT) e REGISTRA tudo.
 
 Rode a partir da raiz do repositório:
-    python licoes/03-neuroevolucao/treinar.py              # com janela, para assistir
-    python licoes/03-neuroevolucao/treinar.py --rapido     # sem janela, bem mais rápido
+    # com janela, para assistir
+    python licoes/03-neuroevolucao/treinar.py
+    # sem janela, bem mais rápido
+    python licoes/03-neuroevolucao/treinar.py --rapido
     python licoes/03-neuroevolucao/treinar.py --geracoes 50
 
 Teclas durante o treino (modo com janela):
@@ -204,9 +206,12 @@ def main():
     print(f"Melhor na última:  {ultima['melhor']}   média: {ultima['media']}")
     print(f"Histórico salvo:   {ARQ_HISTORICO}")
     print("Próximos passos:")
-    print("  python licoes/03-neuroevolucao/relatorio.py          # gráficos + RELATORIO.md")
-    print("  python licoes/03-neuroevolucao/assistir.py           # campeão final jogando")
-    print("  python licoes/03-neuroevolucao/assistir.py --geracao 0   # compare com o da geração 0!")
+    print("  Gráficos + RELATORIO.md:")
+    print("    python licoes/03-neuroevolucao/relatorio.py")
+    print("  Campeão final jogando:")
+    print("    python licoes/03-neuroevolucao/assistir.py")
+    print("  Compare com o campeão da geração 0:")
+    print("    python licoes/03-neuroevolucao/assistir.py --geracao 0")
 
     if treinador.mostrar:
         pygame.quit()

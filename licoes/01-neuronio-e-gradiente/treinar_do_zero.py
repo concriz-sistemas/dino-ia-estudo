@@ -14,8 +14,10 @@ O problema (inspirado no dino):
     E quanto mais rápido o jogo, mais longe essa faixa fica.
 
 Rode a partir da raiz do repositório:
-    python licoes/01-neuronio-e-gradiente/treinar_do_zero.py            # treina e salva os gráficos
-    python licoes/01-neuronio-e-gradiente/treinar_do_zero.py --ao-vivo  # assiste o treino numa janela
+    # treina e salva os gráficos
+    python licoes/01-neuronio-e-gradiente/treinar_do_zero.py
+    # assiste o treino numa janela
+    python licoes/01-neuronio-e-gradiente/treinar_do_zero.py --ao-vivo
 
 No modo --ao-vivo:  ESPAÇO = pausar/continuar,  → = avançar uma época (pausado)
 
