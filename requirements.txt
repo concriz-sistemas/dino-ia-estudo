@@ -2,3 +2,5 @@ numpy>=1.24
 matplotlib>=3.7
 pygame>=2.5
 neat-python>=0.92
+gymnasium>=0.29
+stable-baselines3>=2.3
