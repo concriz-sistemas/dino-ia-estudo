@@ -1,0 +1,57 @@
+{
+ "32": {
+  "loss": 1.6424626688162485,
+  "sample": "the dino only matches teacher's when example find of the 292020000 15 is in lotic still it learning:\nthe value: you the",
+  "kilobytes": 433.70703125
+ },
+ "8-table": {
+  "loss": 1.6427092591921488,
+  "sample": "the dino only matches teacher's when example find of the 292020000 15 is in lotic still it learning:\nthe value: is a wi",
+  "kilobytes": 113.83203125
+ },
+ "6-table": {
+  "loss": 1.6473432977994282,
+  "sample": "the dino only matches teacher per - on to lesson 4's hidden neuron 15 is it lets to playing the value of and the says t",
+  "kilobytes": 87.17578125
+ },
+ "4-table": {
+  "loss": 1.805647361278534,
+  "sample": "the dino only matches mea (--line - on to line with it in a lockor the score few to poition the very dino a in the new ",
+  "kilobytes": 60.51953125
+ },
+ "3-table": {
+  "loss": 2.996409225463867,
+  "sample": "the dino our s tep t tep thon py thioes oue + in tharad, the dy ouat t thival tions this hlly ty biadeded tht then your",
+  "kilobytes": 47.19140625
+ },
+ "2-table": {
+  "loss": 4.5517624060312905,
+  "sample": "the dino ou\",j6je/'bykyouf(kq/pdou-6oet410je 9010210zhu,j6wbykq)oua15kykd/v(lftnhou!)o)?ykky/hou\"by:821-\n9by/zefybyybyb",
+  "kilobytes": 33.86328125
+ },
+ "8-row": {
+  "loss": 1.642253969113032,
+  "sample": "the dino only matches teacher's when example find of the 292020000 15 is in lotic still it learning:\nthe value: you the",
+  "kilobytes": 113.83203125
+ },
+ "6-row": {
+  "loss": 1.6433456043402355,
+  "sample": "the dino only matches teacher's when example find of the 292020000 15 is in lotic still it learning:\nthe value: you the",
+  "kilobytes": 87.17578125
+ },
+ "4-row": {
+  "loss": 1.6991854945818583,
+  "sample": "the dino only model step for from -1.99. the mird of the 200020000 15 is in lotic starts heath the action and then abou",
+  "kilobytes": 60.51953125
+ },
+ "3-row": {
+  "loss": 1.9819919308026632,
+  "sample": "the dino only mateat the age appeare enviou + into siticndary; alll 5eps onll the stoppenesethe steppeare agent is a wa",
+  "kilobytes": 47.19140625
+ },
+ "2-row": {
+  "loss": 4.121965686480205,
+  "sample": "the dino o lh maeeap, led olenas es uess sluteinananho , / sl;  otut ep dju lntnhnop) )(sjulth u\" tecorep ap gts sna ut",
+  "kilobytes": 33.86328125
+ }
+}
