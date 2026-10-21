@@ -176,4 +176,4 @@ O PPO foi o algoritmo usado nas primeiras versões de RLHF. Hoje há variações
 
 ---
 
-**Lição anterior:** [neuroevolução](../03-neuroevolution/README.pt-BR.md) · **Início do estudo:** [todas as lições](../../README.pt-BR.md)
+**Lição anterior:** [neuroevolução](../03-neuroevolution/README.pt-BR.md) · **Início do estudo:** [todas as lições](../../README.pt-BR.md) · **Próxima lição:** [imitação](../05-imitation/README.pt-BR.md)

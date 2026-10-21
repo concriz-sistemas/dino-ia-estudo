@@ -174,4 +174,4 @@ PPO was the algorithm used in the first versions of RLHF. Today there are variat
 
 ---
 
-**Previous lesson:** [neuroevolution](../03-neuroevolution/README.md) · **Study home:** [all lessons](../../README.md)
+**Previous lesson:** [neuroevolution](../03-neuroevolution/README.md) · **Study home:** [all lessons](../../README.md) · **Next lesson:** [imitation](../05-imitation/README.md)

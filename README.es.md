@@ -18,6 +18,7 @@ Cada lección es una carpeta con un **README que explica los conceptos**, un **s
 | 2 | [El entorno](lessons/02-the-environment/README.es.md) | El juego en pygame, lo que la IA "ve" (sensores), acciones y recompensa | juegas tú |
 | 3 | [Neuroevolución (NEAT)](lessons/03-neuroevolution/README.es.md) | Entrenar **sin gradiente**, por selección y mutación. Registro de cada generación, gráficos de los pesos e informe automático | ~3 s sin ventana |
 | 4 | [Aprendizaje por refuerzo (PPO)](lessons/04-reinforcement/README.es.md) | Un dino aprende por gradiente a partir de recompensas: actor, crítico, ventaja, clip. Dónde queda guardado el aprendizaje y la relación con el ajuste de los LLM | ~2 min sin ventana |
+| 5 | [Imitación](lessons/05-imitation/README.es.md) | Juegas tú y una red aprende a copiarte, o copia al agente de la lección 4. Aprendizaje supervisado a partir de demostraciones, y por qué los LLM imitan antes de usar refuerzo | ~2 s de entrenamiento |
 
 Las dudas comunes, como "¿alguien le enseña la regla a la IA?" y "¿dónde queda guardado el aprendizaje?", están en [Preguntas que surgen en el camino](#preguntas-que-surgen-en-el-camino).
 
@@ -139,6 +140,28 @@ python lessons/04-reinforcement/watch.py
 
 La lección también responde dónde queda guardado el aprendizaje (en un archivo de pesos, como un LLM) y muestra la relación con el ajuste de los LLM. [Lección 4](lessons/04-reinforcement/README.es.md).
 
+### Paso 5: imitación
+
+```bash
+python lessons/05-imitation/train.py
+```
+
+Una red alumna aprende a jugar copiando a un profesor: aquí, 10 partidas grabadas del agente de la lección 4. Una sola partida grabada y 2 segundos de entrenamiento bastan para un jugador perfecto. Después, mira al alumno jugando junto a las elecciones del profesor:
+
+```bash
+python lessons/05-imitation/watch.py
+```
+
+![el alumno de la lección 5](lessons/05-imitation/results/student.gif)
+
+Y enséñale tú mismo: juega algunas partidas y se graba cada cuadro.
+
+```bash
+python lessons/05-imitation/record.py
+```
+
+[Lección 5](lessons/05-imitation/README.es.md).
+
 ### Grabar las animaciones
 
 Los GIF de esta página los generan los propios scripts:
@@ -182,13 +205,20 @@ dino-ai-study/
     │   ├── report.py                 # genera gráficos + REPORT.md
     │   ├── watch.py                  # mira al campeón de cualquier generación jugando
     │   └── results/                  # history.json, gráficos, REPORT.md
-    └── 04-reinforcement/
+    ├── 04-reinforcement/
+    │   ├── README.md
+    │   ├── environment.py            # el juego en formato Gymnasium (observación, acción, recompensa)
+    │   ├── train.py                  # entrena con PPO y guarda el modelo en varios momentos
+    │   ├── report.py                 # gráficos, mapa de decisión + REPORT.md
+    │   ├── watch.py                  # el dino jugando, con su "cabeza" al lado
+    │   └── results/models/           # el aprendizaje: archivos con los pesos de la red
+    └── 05-imitation/
         ├── README.md
-        ├── environment.py            # el juego en formato Gymnasium (observación, acción, recompensa)
-        ├── train.py                  # entrena con PPO y guarda el modelo en varios momentos
-        ├── report.py                 # gráficos, mapa de decisión + REPORT.md
-        ├── watch.py                  # el dino jugando, con su "cabeza" al lado
-        └── results/models/           # el aprendizaje: archivos con los pesos de la red
+        ├── record.py                 # juegas tú (o juega el agente de la lección 4) y se graba cada cuadro
+        ├── train.py                  # una red alumna aprende a imitar las grabaciones
+        ├── experiments.py            # profesores fuerte, débil y lento: ¿el alumno queda igual de bien?
+        ├── watch.py                  # el alumno jugando, junto a las elecciones del profesor
+        └── results/demos/            # las demostraciones grabadas (CSV)
 ```
 
 Cada README existe en tres versiones: `README.md` (inglés), `README.pt-BR.md` (portugués) y `README.es.md` (español).
@@ -254,8 +284,9 @@ Es la misma idea a una escala gigantesca. Un LLM también es un archivo de pesos
 
 Usan los mismos bloques de estas lecciones, a una escala enorme:
 
-1. **Preentrenamiento** — el ciclo de la **Lección 1** (forward, pérdida, gradiente, paso), con miles de millones de pesos aprendiendo a predecir la siguiente palabra en billones de textos.
-2. **Postentrenamiento** — el ciclo de la **Lección 4** (actuar, recibir una recompensa, ajustar por gradiente): el modelo genera respuestas, recibe una nota (de personas o de pruebas automáticas) y se ajusta para sacar mejores notas.
+1. **Preentrenamiento** — el ciclo de la **Lección 1** (forward, pérdida, gradiente, paso), con miles de millones de pesos aprendiendo a predecir la siguiente palabra en billones de textos. En cierto modo ya es imitación: el modelo copia cómo escriben las personas.
+2. **Ajuste supervisado** (*supervised fine-tuning*) — la **Lección 5**: personas escriben ejemplos de buenas respuestas y el modelo aprende a imitarlos.
+3. **Aprendizaje por refuerzo** — el ciclo de la **Lección 4** (actuar, recibir una recompensa, ajustar por gradiente): el modelo genera respuestas, recibe una nota (de personas o de pruebas automáticas) y se ajusta para sacar mejores notas.
 
 La neuroevolución de la **Lección 3** no se usa para entrenar LLM (sería demasiado lenta con miles de millones de pesos), pero es la forma más visual de entender que **"aprender" es ajustar números hasta que una nota mejore**.
 
