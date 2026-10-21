@@ -17,6 +17,8 @@ Cada lição é uma pasta com um **README explicando os conceitos**, um **script
 | 3 | [Neuroevolução (NEAT)](licoes/03-neuroevolucao/README.md) | Treinar **sem gradiente**, por seleção e mutação. Registro de cada geração, gráficos dos pesos e relatório automático | ~10 s sem janela |
 | 4 | [Aprendizado por reforço (PPO)](licoes/04-reforco/README.md) | Um dino aprende por gradiente a partir de recompensas: ator, crítico, vantagem, clip. Onde fica guardado o aprendizado e a ligação com o ajuste de LLMs | ~2 min sem janela |
 
+Dúvidas comuns, como "alguém ensina a regra?" e "onde fica guardado o aprendizado?", estão em [Perguntas que aparecem pelo caminho](#perguntas-que-aparecem-pelo-caminho).
+
 ---
 
 ## Instalação
@@ -199,6 +201,34 @@ dino-ia-estudo/
 | **Geração** | Uma rodada da evolução: todos jogam, os melhores se reproduzem. |
 | **Mutação** | Mudança aleatória num peso ou na estrutura da rede. |
 | **Espécie** | Grupo de redes parecidas que competem entre si no NEAT. |
+
+---
+
+## Perguntas que aparecem pelo caminho
+
+**Alguém ensina a regra para a IA?**
+Não. Em nenhuma lição a IA recebe a regra "pule quando o cacto estiver perto". Na lição 1, a regra existe no código só para gerar 600 exemplos já respondidos, e a rede aprende com os exemplos sem nunca ver a regra. Nas lições 3 e 4 nem isso: a IA só recebe uma nota ou uma recompensa, que diz se deu certo, nunca como fazer.
+
+**Então o aprendizado é aleatório?**
+Só em parte. Os pesos começam sorteados em todas as lições. Na lição 1 e na 4, daí em diante o gradiente calcula para que lado mexer cada peso, sem sorteio. Na lição 3, as mutações são sorteadas, mas a seleção não: os dinos que vão mais longe têm filhos. O acaso propõe e a nota escolhe. Por isso cada treino dá números diferentes, mas a regra principal ("longe = não pule") sempre aparece.
+
+**Por que no replay a forma aparece rápido e depois quase não muda?**
+No começo a rede erra muito, o gradiente é grande e cada passo mexe bastante nos pesos. Perto do fundo do "vale" da perda, o gradiente fica minúsculo (de ~1 para ~0,002 na lição 1) e os pesos quase param. Isso se chama convergência. [Explicação completa na lição 1](licoes/01-neuronio-e-gradiente/README.md#por-que-a-forma-aparece-rápido-e-depois-para), incluindo a ligação com regressão linear.
+
+**Por que o treino da lição 4 fica parado e depois dá um salto?**
+Por uns 600 mil passos, o dino fica preso em "pular sem parar", que rende uns 150 pontos e é difícil de largar (um *ótimo local*). Quando descobre que esperar o cacto chegar perto rende muito mais, a média dispara para perto de 5000. Nos primeiros testes, sem ajustes, ele não saiu do platô em 500 mil passos e, com 2 milhões, só saiu perto do fim. O que adiantou o salto foi fazer cada ação valer 2 quadros e dar mais bônus para explorar.
+
+**A IA faz o que um humano faria?**
+Nem sempre. Diante de um pássaro na altura da cabeça, o dino da lição 4 fica abaixado enquanto o pássaro está longe e pula por cima quando ele chega perto. Ninguém ensinou isso, e funciona. A recompensa premia o resultado, não o jeito.
+
+**Por que o dino joga melhor no teste do que no treino?**
+No treino, o agente da lição 4 ainda sorteia ações para explorar, então às vezes erra de propósito. No teste ele sempre escolhe a ação mais provável. Por isso a média no treino fica em ~4.300, enquanto o modelo final fez 5000 em todas as 10 partidas novas.
+
+**Depois de treinado, o aprendizado fica guardado?**
+Fica, num arquivo de pesos. O dino da lição 4 é o arquivo `licoes/04-reforco/resultados/modelos/ppo_02000k.zip`: 64 KB com 2.692 números. Carregar esse arquivo é ter o dino que sabe jogar, sem treinar de novo. Na lição 1, a última linha de `historico_pesos.csv` tem os pesos finais; na lição 3, o `campeoes.pkl` guarda o campeão de cada geração.
+
+**Isso é parecido com um LLM?**
+É a mesma ideia em escala gigante. Um LLM também é um arquivo de pesos, só que com bilhões de números e de alguns a centenas de gigabytes. E, como aqui, usar não muda o arquivo: rodar o `assistir.py` mil vezes não ensina nada ao dino, e um LLM não aprende enquanto conversa com você. Ele só muda quando um novo treino gera um novo arquivo, ou seja, uma nova versão do modelo.
 
 ---
 
