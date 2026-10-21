@@ -209,6 +209,12 @@ dino-ia-estudo/
 **Alguém ensina a regra para a IA?**
 Não. Em nenhuma lição a IA recebe a regra "pule quando o cacto estiver perto". Na lição 1, a regra existe no código só para gerar 600 exemplos já respondidos, e a rede aprende com os exemplos sem nunca ver a regra. Nas lições 3 e 4 nem isso: a IA só recebe uma nota ou uma recompensa, que diz se deu certo, nunca como fazer.
 
+**O dino aprende sozinho a enxergar onde estão os obstáculos?**
+Não, e isso é proposital. Em nenhuma lição o dino vê a tela. O código do jogo mede tudo e entrega 6 números prontos: distância, largura, altura e elevação do próximo obstáculo, a altura do dino e a velocidade. É como dar a ele um sensor de distância em vez de olhos. O que ele aprende sozinho é **o que fazer** com esses números: quando pular, quando abaixar, quando esperar. Aprender a enxergar a partir dos pixels da tela, como a DeepMind fez com jogos de Atari, exige uma rede convolucional e muito mais treino. É o próximo nível deste curso.
+
+**E a lição 1, então?**
+A lição 1 nem tem dino jogando. É um exercício com exemplos prontos (o *gabarito*, os pontos dos gráficos) para ver o gradiente funcionando de perto. Quem aprende de verdade a jogar, sem ninguém saber a resposta, são os dinos das lições 3 e 4.
+
 **Então o aprendizado é aleatório?**
 Só em parte. Os pesos começam sorteados em todas as lições. Na lição 1 e na 4, daí em diante o gradiente calcula para que lado mexer cada peso, sem sorteio. Na lição 3, as mutações são sorteadas, mas a seleção não: os dinos que vão mais longe têm filhos. O acaso propõe e a nota escolhe. Por isso cada treino dá números diferentes, mas a regra principal ("longe = não pule") sempre aparece.
 

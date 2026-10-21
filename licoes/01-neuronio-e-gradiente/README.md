@@ -41,6 +41,14 @@ A resposta certa é uma **faixa**: se o cacto estiver perto demais, já é tarde
 
 A rede **nunca vê essa regra**. Ela só recebe 600 exemplos (os pontos acima) e precisa descobrir o padrão sozinha.
 
+### O que são os pontos nos gráficos
+
+São o **gabarito**. Antes de treinar, o script sorteia 600 situações e usa a regra verdadeira para responder cada uma. Daí em diante, nos gráficos da rede, os pontos pretos são os 137 exemplos marcados como "pular" (os 463 "não pular" ficam de fora para não poluir).
+
+Os pontos **nunca mudam**. O que muda durante o treino é o **fundo colorido**: a resposta da rede para cada lugar do plano. Treinar é fazer o fundo ficar vermelho onde estão os pontos e azul no resto.
+
+Isso se chama **aprendizado supervisionado**: as respostas dos exemplos são conhecidas desde o início, e a rede aprende comparando o que respondeu com o gabarito. Nas lições 3 e 4 não existe gabarito; o dino só recebe uma nota ou uma recompensa.
+
 ---
 
 ## 2. A rede
