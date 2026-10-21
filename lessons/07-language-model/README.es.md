@@ -98,6 +98,39 @@ Mira las dos curvas. La pérdida en el **texto de entrenamiento** sigue bajando 
 
 La cura de verdad es **mucho más texto**. 47 mil caracteres caben en unas pocas páginas; los LLM se entrenan con billones de tokens, así que no pueden memorizarlo todo y tienen que aprender los patrones.
 
+### Medirlo: ¿el texto es nuevo o copiado?
+
+Las curvas de pérdida dicen *cuándo* empieza a memorizar. Para verlo en el propio texto, [`memorization.py`](memorization.py) funciona como un detector de plagio: para cada carácter que escribe el modelo, busca el **fragmento más largo a su alrededor que aparece, exactamente igual, en el texto de entrenamiento**. Los fragmentos cortos ("the ", "ing ") aparecen en cualquier texto en inglés y no significan nada. Un fragmento copiado de **20 caracteres o más** es una señal de memorización.
+
+Como referencia justa, la misma revisión se hace sobre el 10% del texto que quedó afuera: inglés real, escrito por una persona, que el modelo nunca vio. Solo el **2.5%** queda dentro de fragmentos copiados de 20+ caracteres, por pura casualidad (los README repiten algunas frases).
+
+El script entrena dos modelos durante 12 000 pasos, tres veces más que `train.py`: uno con *dropout* y otro sin él.
+
+```bash
+python lessons/07-language-model/memorization.py
+```
+
+![memorización](results/05_memorization.png)
+
+| Paso | Con *dropout*: pérdida en el texto no visto | Con *dropout*: copiado | Sin *dropout*: pérdida en el texto no visto | Sin *dropout*: copiado |
+|---|---|---|---|---|
+| 1 000 | 1.70 | 0% | 1.75 | 0% |
+| 4 000 | 1.71 | 2.5% | 3.11 | 22% |
+| 9 000 | 1.82 | 7% | 4.35 | **55%** |
+| 12 000 | 1.83 | 10% | 4.68 | 50% |
+
+Sin *dropout*, el modelo empeora en el texto no visto mientras copia cada vez más: en el paso 9 000, más de la mitad de lo que escribe está pegado de los README. Con *dropout* copia mucho menos, pero se desvía despacio en la misma dirección. Por eso `train.py` se detiene en el mejor momento.
+
+Aquí está el texto mismo, coloreado carácter por carácter:
+
+![texto copiado](results/06_copied_text.png)
+
+- **Arriba**, con *dropout* en su mejor momento: casi todo verde y amarillo. Palabras conocidas y frases cortas, combinadas de formas nuevas.
+- **En el medio**, sin *dropout* en el paso 9 000: largos tramos rojos, como "lesson 4's 04decisions.png: it's practically the same", copiado palabra por palabra del README de la lección 5.
+- **Abajo**, la referencia: inglés real que el modelo nunca vio. Casi todo verde, con amarillo en las frases comunes.
+
+Así que sí, se puede comprobar si un modelo está repitiendo lo que leyó, al menos para el texto que tienes: compara lo que escribe con lo que usó para entrenar. Los investigadores hacen lo mismo con LLM grandes y encuentran las dos cosas. Pueden repetir algunos textos palabra por palabra, sobre todo los que aparecen muchas veces en sus datos de entrenamiento, pero la mayor parte de lo que escriben son combinaciones nuevas.
+
 ---
 
 ## 4. Escribir: azar y temperatura

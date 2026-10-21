@@ -96,6 +96,40 @@ Look at the two curves. The loss on the **training text** keeps going down until
 
 The cure for real is **much more text**. 47 thousand characters fit in a few pages; LLMs train on trillions of tokens, so they can't memorize all of it and have to learn the patterns.
 
+
+### Measuring it: is the text new, or copied?
+
+The loss curves say *when* memorizing starts. To see it in the text itself, [`memorization.py`](memorization.py) works like a plagiarism checker: for every character the model writes, it finds the **longest piece around it that appears, exactly, in the training text**. Short pieces ("the ", "ing ") show up in any English text and mean nothing. A copied piece of **20 or more characters** is a sign of memorization.
+
+As a fair reference, the same check runs on the unseen 10% of the text: real English, written by a person, that the model never saw. Only **2.5%** of it sits inside copied pieces of 20+ characters, just by chance (the READMEs repeat some phrases).
+
+The script trains two models for 12,000 steps, three times longer than `train.py`: one with dropout, one without.
+
+```bash
+python lessons/07-language-model/memorization.py
+```
+
+![memorization](results/05_memorization.png)
+
+| Step | With dropout: loss on unseen text | With dropout: copied | Without dropout: loss on unseen text | Without dropout: copied |
+|---|---|---|---|---|
+| 1,000 | 1.70 | 0% | 1.75 | 0% |
+| 4,000 | 1.71 | 2.5% | 3.11 | 22% |
+| 9,000 | 1.82 | 7% | 4.35 | **55%** |
+| 12,000 | 1.83 | 10% | 4.68 | 50% |
+
+Without dropout, the model gets worse on unseen text while it copies more and more: by step 9,000, more than half of what it writes is pasted from the READMEs. With dropout it copies much less, but it slowly drifts the same way. That's why `train.py` stops at the best moment.
+
+Here is the text itself, colored character by character:
+
+![copied text](results/06_copied_text.png)
+
+- **Top**, with dropout at its best: almost all green and yellow. Familiar words and short phrases, combined in new ways.
+- **Middle**, without dropout at step 9,000: long red stretches, such as "lesson 4's 04decisions.png: it's practically the same", copied word for word from lesson 5's README.
+- **Bottom**, the reference: real English the model never saw. Mostly green, with yellow for common phrases.
+
+So yes, you can check whether a model is repeating what it read, at least for text you have: compare what it writes with what it trained on. Researchers do the same with big LLMs and find both. They can repeat some texts word for word, especially ones that appear many times in their training data, but most of what they write is new combinations.
+
 ---
 
 ## 4. Writing: chance and temperature

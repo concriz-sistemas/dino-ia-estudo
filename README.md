@@ -328,6 +328,12 @@ Yes, in a weights file. Lesson 4's dino is the file `lessons/04-reinforcement/re
 **Is this similar to an LLM?**
 It is the same idea at a gigantic scale. An LLM is also a weights file, only with billions of numbers and anywhere from a few to hundreds of gigabytes. And, as here, using it does not change the file: running `watch.py` a thousand times teaches the dino nothing, and an LLM does not learn while it talks with you. It only changes when a new training run produces a new file, that is, a new version of the model.
 
+**What is overfitting?**
+It's when a model **memorizes its training examples instead of learning the pattern behind them**. It does great on what it has already seen and badly on anything new, like a student who memorizes the answers to the practice sheet and then fails the exam because the questions changed. It shows up twice in this study: in lesson 1, a network trained on only 20 examples got 100% of them right but only about 91% of new situations; in lesson 7, the language model kept getting better on its training text while getting worse on text it had never seen. That's why every lesson keeps part of the data aside: it's the only way to tell learning from memorizing.
+
+**So does an LLM really "think", or does it just repeat what it memorized?**
+Partly memorizes, but mostly not. An LLM is trained on far more text than its weights could store word for word, so to do well it has to keep **patterns**: grammar, common facts, how an explanation or a piece of code usually goes. The tiny model of lesson 7 did the same at its scale: nobody told it that "3" and "4" are numbers, but it grouped them because that helped it guess. And you can measure the copying: [lesson 7](lessons/07-language-model/README.md#measuring-it-is-the-text-new-or-copied) checks every character it writes against the training text and colors the copied parts. At its best moment the tiny model writes mostly new combinations; trained too long without dropout, half of what it writes is pasted. Big LLMs show both behaviors too: they can repeat some texts word for word, especially ones they saw many times, and they get worse far from what they saw, like the eyes of lesson 6. Whether that counts as "thinking" is an open question that depends on what we mean by the word. What can be measured is that they generalize well beyond memorizing, with impressive successes and strange mistakes.
+
 ---
 
 ## How does this relate to LLMs?

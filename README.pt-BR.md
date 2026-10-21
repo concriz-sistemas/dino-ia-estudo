@@ -330,6 +330,12 @@ Fica, num arquivo de pesos. O dino da lição 4 é o arquivo `lessons/04-reinfor
 **Isso é parecido com um LLM?**
 É a mesma ideia em escala gigante. Um LLM também é um arquivo de pesos, só que com bilhões de números e de alguns a centenas de gigabytes. E, como aqui, usar não muda o arquivo: rodar o `watch.py` mil vezes não ensina nada ao dino, e um LLM não aprende enquanto conversa com você. Ele só muda quando um novo treino gera um novo arquivo, ou seja, uma nova versão do modelo.
 
+**O que é overfitting?**
+É quando um modelo **decora os exemplos do treino em vez de aprender o padrão por trás deles**. Ele vai muito bem no que já viu e mal em qualquer coisa nova, como um aluno que decora as respostas da lista de exercícios e depois vai mal na prova, porque as perguntas mudaram. Aparece duas vezes neste estudo: na lição 1, uma rede treinada com só 20 exemplos acertou 100% deles, mas só uns 91% de situações novas; na lição 7, o modelo de linguagem continuou melhorando no texto de treino enquanto piorava em texto que nunca tinha visto. É por isso que toda lição separa uma parte dos dados: é o único jeito de distinguir aprender de decorar.
+
+**Então um LLM "pensa" de verdade, ou só repete o que decorou?**
+Decora um pouco, mas na maior parte não. Um LLM é treinado com muito mais texto do que os pesos dele conseguiriam guardar palavra por palavra; para ir bem, ele precisa guardar **padrões**: gramática, fatos comuns, como uma explicação ou um código costumam ser. O modelo minúsculo da lição 7 fez o mesmo na escala dele: ninguém disse que "3" e "4" são números, mas ele os agrupou porque isso ajudava a prever. E dá para medir a cópia: a [lição 7](lessons/07-language-model/README.pt-BR.md) compara cada caractere que o modelo escreve com o texto de treino e pinta as partes copiadas. No seu melhor momento, o modelo escreve quase só combinações novas; treinado por tempo demais sem *dropout*, metade do que ele escreve é colado. Os LLMs grandes também mostram os dois comportamentos: conseguem repetir alguns textos palavra por palavra, principalmente os que viram muitas vezes, e pioram longe do que viram, como os olhos da lição 6. Se isso conta como "pensar" é uma pergunta em aberto, que depende do que se entende pela palavra. O que dá para medir é que eles generalizam bem além da memorização, com acertos impressionantes e erros estranhos.
+
 ---
 
 ## Qual a relação com os LLMs?
