@@ -1,167 +1,177 @@
-# Lição 4 — Aprendizado por reforço (PPO)
+**English** · [Português](README.pt-BR.md) · [Español](README.es.md)
 
-> **Objetivo:** juntar o **gradiente** da lição 1 com a **nota** da lição 3. Um único dino joga milhares de partidas e ajusta os pesos da rede, por gradiente, para ganhar mais recompensa.
-> É a mesma família de técnicas usada para ajustar LLMs depois do pré-treino.
+# Lesson 4 — Reinforcement learning (PPO)
 
-![modelos jogando](resultados/modelos.gif)
+> **Goal:** combine the **gradient** from lesson 1 with the **score** from lesson 3. A single dino plays thousands of matches and adjusts the network's weights, by gradient, to earn more reward.
+> It is the same family of techniques used to fine-tune LLMs after pre-training.
 
-*O mesmo dino com 0, 500 mil, 1 milhão e 2 milhões de passos de treino, na mesma partida. À direita, a chance que a rede dá para cada ação e o valor que ela espera ganhar.*
+![models playing](results/models.gif)
 
-Rode um de cada vez, nesta ordem.
+*The same dino after 0, 500 thousand, 1 million and 2 million training steps, on the same match. The 0k model crashes at 86 points and the 500k model at 129; the other two are still alive when the clip ends (each clip stops at 700 points). On the right, the chance the network gives each action ("Chance of each action") and the value it expects to earn ("Expected value:").*
 
-1. Treine (uns 2 minutos, sem janela):
+Run one at a time, in this order.
 
-```bash
-python licoes/04-reforco/treinar.py
-```
-
-2. Gere os gráficos e o `RELATORIO.md`:
+1. Train (about 80 seconds on the Mac used for the example, no window):
 
 ```bash
-python licoes/04-reforco/relatorio.py
+python lessons/04-reinforcement/train.py
 ```
 
-3. Assista ao modelo final jogando. As setas ← → trocam de modelo salvo:
+2. Generate the charts and `REPORT.md`:
 
 ```bash
-python licoes/04-reforco/assistir.py
+python lessons/04-reinforcement/report.py
 ```
 
-4. Compare com o modelo antes de treinar:
+3. Watch the final model play. The ← → arrows switch between saved models, and R starts a new match:
 
 ```bash
-python licoes/04-reforco/assistir.py --modelo 0
+python lessons/04-reinforcement/watch.py
 ```
 
-Os modelos de um treino de exemplo já estão no repositório, então o passo 3 funciona mesmo sem treinar.
+4. Compare with the model before training:
+
+```bash
+python lessons/04-reinforcement/watch.py --model 0
+```
+
+The models from an example training run are already in the repository, so step 3 works even without training.
 
 ---
 
-## 1. Três jeitos de aprender
+## 1. Three ways to learn
 
-| | Lição 1 — gradiente | Lição 3 — neuroevolução | Lição 4 — reforço |
+| | [Lesson 1](../01-neuron-and-gradient/README.md) — gradient | [Lesson 3](../03-neuroevolution/README.md) — neuroevolution | Lesson 4 — reinforcement |
 |---|---|---|---|
-| Quem joga | ninguém (exemplos prontos) | 50 dinos por geração | 1 dino, milhares de partidas |
-| O que a IA recebe | a resposta certa de cada exemplo | uma nota no fim da partida | uma recompensa a **cada passo** |
-| Como os pesos mudam | gradiente | mutação aleatória + seleção | gradiente |
-| Precisa de alguém saber a resposta? | sim | não | não |
+| Who plays | nobody (ready-made examples) | 50 dinos per generation | 1 dino, thousands of matches |
+| What the AI receives | the right answer for each example | a score at the end of the match | a reward at **every step** |
+| How the weights change | gradient | random mutation + selection | gradient |
+| Does someone need to know the answer? | yes | no | no |
 
-O reforço fica no meio: como na lição 3, ninguém diz qual é a jogada certa; como na lição 1, os pesos mudam por gradiente, sem sorteio de mutações.
-
----
-
-## 2. O ambiente: observação, ação, recompensa
-
-[`ambiente.py`](ambiente.py) embala o jogo no formato padrão **Gymnasium**, que qualquer algoritmo de reforço entende:
-
-- **Observação:** os mesmos 6 sensores das lições anteriores.
-- **Ação:** 0 = nada, 1 = pular, 2 = abaixar.
-- **Recompensa:** `+0.1` por quadro vivo e `−1` ao bater. É o único "professor". O agente não sabe o que é um cacto; só sabe que alguns números na entrada antecedem a recompensa ruim.
-
-Cada partida tem obstáculos sorteados de novo, então o agente precisa **generalizar** em vez de decorar uma fase.
-
-**Repetição de ação:** cada decisão vale por 2 quadros do jogo (`REPETIR_ACAO = 2`). Com menos decisões por partida, fica mais fácil ligar uma ação à consequência dela. A DeepMind fazia o mesmo com 4 quadros nos jogos de Atari.
+Reinforcement sits in the middle: as in lesson 3, nobody says which move is right; as in lesson 1, the weights change by gradient, with no random mutations.
 
 ---
 
-## 3. Ator e crítico: duas redes
+## 2. The environment: observation, action, reward
 
-O PPO treina **duas redes pequenas** ao mesmo tempo, as duas com 6 entradas e duas camadas de 32 neurônios:
+[`environment.py`](environment.py) wraps the game in the standard **Gymnasium** format, which any reinforcement learning algorithm understands:
 
-- **Ator (1.379 pesos):** olha os sensores e dá a chance de cada ação. É quem joga.
-- **Crítico (1.313 pesos):** olha os sensores e estima o **valor**: quanta recompensa ainda vem pela frente a partir dali.
+- **Observation:** the same 6 sensors from the previous lessons.
+- **Action:** 0 = nothing, 1 = jump, 2 = duck.
+- **Reward:** `+0.1` per frame alive and `−1` on crashing. It is the only "teacher". The agent does not know what a cactus is; it only knows that some numbers in the input come before the bad reward.
 
-No `assistir.py`, o valor do modelo treinado fica perto de **20**. Não é por acaso: cada passo vale 0.2 (dois quadros de 0.1) e o desconto `GAMMA = 0.99` faz o futuro distante valer cada vez menos, então a soma de tudo que vem pela frente dá 0.2 / (1 − 0.99) = 20. Quando um obstáculo difícil se aproxima e o crítico acha que pode dar errado, o valor cai.
+Every match has freshly drawn obstacles, so the agent has to **generalize** instead of memorizing a level.
 
----
-
-## 4. Como o PPO aprende
-
-Um ciclo, repetido umas 245 vezes num treino de 2 milhões de passos:
-
-1. **Joga:** 8 partidas em paralelo, 1.024 passos cada. O ator **sorteia** as ações pelas chances que dá (é assim que ele explora).
-2. **Compara com o esperado:** para cada passo, calcula a **vantagem**: deu mais ou menos recompensa do que o crítico esperava?
-3. **Ajusta por gradiente:** aumenta a chance das ações com vantagem positiva e diminui a das com vantagem negativa. O crítico também é ajustado para errar menos na próxima.
-4. **Freia:** o *clip* (o "P" de *Proximal*) impede que a chance de qualquer ação mude mais de ~20% numa atualização. Sem esse freio, um lote de partidas com sorte pode estragar uma política que já funcionava.
-
-O passo 3 é exatamente a descida de gradiente da lição 1. A diferença é **o que** se tenta diminuir: lá era o erro contra a resposta certa; aqui é "menos recompensa do que poderia".
+**Action repeat:** each decision lasts 2 game frames (`ACTION_REPEAT = 2`). With fewer decisions per match, it is easier to link an action to its consequence. DeepMind did the same with 4 frames in Atari games.
 
 ---
 
-## 5. O que observar no relatório de exemplo
+## 3. Actor and critic: two networks
 
-O treino de exemplo está em [`resultados/RELATORIO.md`](resultados/RELATORIO.md). Cada treino dá números um pouco diferentes, mas os padrões se repetem.
+PPO trains **two small networks** at the same time, both with 6 inputs and two layers of 32 neurons:
 
-![pontos](resultados/01_pontos.png)
+- **Actor (1,379 weights):** looks at the sensors and gives the chance of each action. It is the one that plays.
+- **Critic (1,313 weights):** looks at the sensors and estimates the **value**: how much reward is still to come from there on.
 
-- **Platô, depois salto.** Por uns 600 mil passos o agente fica perto de 150 pontos: pular sem parar é uma estratégia "boa o bastante" e difícil de largar (um *ótimo local*). De repente ele descobre que esperar o cacto chegar perto rende muito mais, e a média dispara.
-- **Treino × teste.** Durante o treino a média fica em ~4.300, abaixo do máximo, porque o ator ainda sorteia ações para explorar. Nos testes, o `relatorio.py` e o `assistir.py` escolhem sempre a ação mais provável, e o modelo final fez 5000 em todas as 10 partidas novas.
-
-![ppo](resultados/02_ppo.png)
-
-- **A entropia despenca junto com o salto dos pontos:** o agente deixa de escolher ao acaso e fica decidido.
-
-![decisões](resultados/04_decisoes.png)
-
-- **Em cima:** a rede aprendeu uma fronteira inclinada (pular quando o cacto chega perto, e mais cedo quanto mais rápido o jogo), parecida com a da lição 1. Só que aqui ninguém deu exemplos.
-- **Embaixo:** com o pássaro na altura da cabeça, o agente fica abaixado enquanto ele está longe e **pula por cima** quando chega perto. Não é o que um humano faria, mas funciona. A recompensa diz se deu certo, nunca como fazer.
+In `watch.py`, the trained model's value ("Expected value:" on the panel) hovers around **19.5**. That is no accident: each step is worth 0.2 (two frames of 0.1) and the discount `GAMMA = 0.99` makes the distant future worth less and less, so the sum of everything ahead comes to 0.2 / (1 − 0.99) = 20. That is the ceiling, and the value shown stays just under it. When a hard obstacle approaches and the critic thinks things may go wrong, the value drops.
 
 ---
 
-## 6. Onde fica guardado o aprendizado?
+## 4. How PPO learns
 
-Num **arquivo de pesos**. Depois de treinado, o modelo é só isso: números. Carregar o arquivo = ter o dino que sabe jogar.
+One cycle, repeated about 245 times in a 2-million-step training run:
 
-| Lição | Arquivo | O que tem dentro |
+1. **Play:** 8 matches in parallel, 1,024 steps each. The actor **draws** its actions from the chances it gives (that is how it explores).
+2. **Compare with what was expected:** for each step, compute the **advantage**: did it give more or less reward than the critic expected?
+3. **Adjust by gradient:** increase the chance of actions with positive advantage and decrease that of actions with negative advantage. The critic is also adjusted to be less wrong next time.
+4. **Brake:** the *clip* (the "P" in *Proximal*) keeps the chance of any action from changing more than ~20% in one update. Without this brake, one batch of lucky matches could ruin a policy that already worked.
+
+Step 3 is exactly the gradient descent from lesson 1. The difference is **what** we try to reduce: there it was the error against the right answer; here it is "less reward than there could have been".
+
+---
+
+## 5. What to look for in the example report
+
+The example training run is in [`results/REPORT.md`](results/REPORT.md). Every training run gives slightly different numbers, but the patterns repeat.
+
+![scores](results/01_scores.png)
+
+- **Plateau, then a jump.** For about 600 thousand steps the agent stays around 100–250 points: jumping nonstop is a "good enough" strategy that is hard to let go of (a *local optimum*). Suddenly it discovers that waiting for the cactus to get close pays off much more, and the average shoots up (the moving average first reaches 300 at ~595k steps, 1,000 at ~686k and 4,000 at ~867k).
+- **Training vs. test.** During training the score stays around 4,200–4,900 (the last 200 matches average 4,329), below the maximum, because the actor still draws actions to explore. In the tests, `report.py` and `watch.py` always pick the most likely action.
+
+![evaluation](results/03_evaluation.png)
+
+- **Each saved model on 10 new matches.** The models at 0k, 250k and 500k steps average 86, 116 and 145 points. The first saved model with a mean of 4,000 or more is the 750k one, and from 750k on every model scored 5000 in all 10 new matches (5000 is `SCORE_LIMIT`, where the match ends).
+
+![ppo](results/02_ppo.png)
+
+- **Entropy plunges together with the jump in scores:** the agent stops choosing at random and becomes decisive.
+
+![decisions](results/04_decisions.png)
+
+- **Top:** the network learned a slanted boundary (jump when the cactus gets close, and earlier the faster the game), similar to the one in lesson 1. Except that here nobody gave it examples.
+- **Bottom:** with the bird at head height, the agent stays ducked while it is far away and **jumps over it** when it gets close. It is not what a human would do, but it works. The reward says whether it worked, never how to do it.
+
+---
+
+## 6. Where is the learning stored?
+
+In a **weights file**. Once trained, the model is just that: numbers. Loading the file = having the dino that knows how to play.
+
+| Lesson | File | What is inside |
 |---|---|---|
-| 1 | `resultados/historico_pesos.csv` | os 25 pesos em cada época; a última linha é a rede treinada |
-| 3 | `resultados/campeoes.pkl` | o genoma do campeão de cada geração (estrutura + pesos) |
-| 4 | `resultados/modelos/ppo_02000k.zip` | `policy.pth` com os 2.692 pesos do ator e do crítico (~64 KB) |
+| [1](../01-neuron-and-gradient/README.md) | `results/weight_history.csv` | the 25 weights at each epoch; the last row is the trained network |
+| [3](../03-neuroevolution/README.md) | `results/champions.pkl` | the genome of each generation's champion (structure + weights) |
+| 4 | `results/models/ppo_02000k.zip` | `policy.pth` with the 2,692 weights of the actor and the critic (about 62 KB) |
 
-Um LLM é **a mesma coisa em escala gigante**: um arquivo (geralmente `.safetensors`) com bilhões de pesos, que ocupa de alguns a centenas de gigabytes. A estrutura da rede é outra (um *transformer*), mas a ideia é igual: o treino ajusta os números, e depois o arquivo é carregado para usar.
+An LLM is **the same thing on a giant scale**: a file (usually `.safetensors`) with billions of weights, taking from a few to hundreds of gigabytes. The network's structure is different (a *transformer*), but the idea is the same: training adjusts the numbers, and then the file is loaded to be used.
 
-E, como aqui, **usar não muda o arquivo**. Rodar o `assistir.py` mil vezes não ensina nada ao dino; só um novo `treinar.py` muda os pesos. Um LLM também não aprende enquanto conversa com você: o que ele "aprende" vem de novas rodadas de treino, que geram um novo arquivo de pesos, ou seja, uma nova versão do modelo.
+And, as here, **using it does not change the file**. Running `watch.py` a thousand times teaches the dino nothing; only a new `train.py` run changes the weights. An LLM does not learn while it talks to you either: what it "learns" comes from new rounds of training, which produce a new weights file, that is, a new version of the model.
 
 ---
 
-## 7. Hiperparâmetros (topo de `treinar.py` e `ambiente.py`)
+## 7. Hyperparameters (top of `train.py` and `environment.py`)
 
-| Parâmetro | Valor | O que faz |
+| Parameter | Value | What it does |
 |---|---|---|
-| `RECOMPENSA_VIVO` / `RECOMPENSA_BATER` | 0.1 / −1 | O que o agente tenta maximizar. Mudar isto muda o comportamento. |
-| `REPETIR_ACAO` | 2 | Quadros por decisão. |
-| `N_AMBIENTES` | 8 | Partidas jogadas em paralelo para coletar experiência. |
-| `PASSOS_POR_COLETA` | 1024 | Passos por partida antes de cada atualização. |
-| `TAXA_APRENDIZADO` | 0.0003 | Tamanho do passo do gradiente, como na lição 1. |
-| `GAMMA` | 0.99 | Quanto o futuro vale. Perto de 1 = enxerga longe. |
-| `ENTROPIA` | 0.03 | Bônus por continuar explorando. Ajudou a sair do platô de "pular sempre". |
-| `CLIP` | 0.2 | Quanto a política pode mudar por atualização. |
-| `CAMADAS` | [32, 32] | Tamanho das redes do ator e do crítico. |
+| `REWARD_ALIVE` / `REWARD_CRASH` | 0.1 / −1 | What the agent tries to maximize. Changing this changes the behavior. |
+| `ACTION_REPEAT` | 2 | Frames per decision. |
+| `N_ENVS` | 8 | Matches played in parallel to collect experience. |
+| `STEPS_PER_ROLLOUT` | 1024 | Steps per match before each update. |
+| `LEARNING_RATE` | 0.0003 | Size of the gradient step, as in lesson 1. |
+| `GAMMA` | 0.99 | How much the future is worth. Close to 1 = sees far ahead. |
+| `ENTROPY_COEF` | 0.03 | Bonus for continuing to explore. It helped get out of the "always jump" plateau. |
+| `CLIP` | 0.2 | How much the policy can change per update. |
+| `LAYERS` | [32, 32] | Size of the actor and critic networks. |
 
 ---
 
-## Exercícios
+## Exercises
 
-1. Em `ambiente.py`, coloque `CUSTO_PULO = 0.01`. O dino passa a pular menos? Olhe o `assistir.py`.
-2. Coloque `REPETIR_ACAO = 1` e treine de novo. Quanto tempo o platô dura agora?
-3. Coloque `ENTROPIA = 0`. O agente consegue sair do "pular sempre"?
-4. Mude `GAMMA` para 0.9. O valor esperado no `assistir.py` vai ficar perto de quanto? (Dica: refaça a conta da seção 3.)
-5. Tire o sensor de velocidade (em `dino/jogo.py`, `sensores()`, troque `vel` por `0`). A fronteira do `04_decisoes.png` continua inclinada?
+1. In `environment.py`, set `JUMP_COST = 0.01`. Does the dino jump less? Look at `watch.py`.
+2. Set `ACTION_REPEAT = 1` and train again. How long does the plateau last now?
+3. Set `ENTROPY_COEF = 0`. Can the agent get out of "always jump"?
+4. Change `GAMMA` to 0.9. Around what value will the expected value in `watch.py` sit? (Hint: redo the calculation from section 3.)
+5. Remove the speed sensor: in `dino/game.py`, in `sensors()`, replace `speed = self.speed / MAX_SPEED` with `speed = 0`. Is the boundary in `04_decisions.png` still slanted?
 
 ---
 
-## E os LLMs?
+## What about LLMs?
 
-No ajuste de um LLM com reforço (RLHF e similares), as peças são as mesmas:
+When an LLM is fine-tuned with reinforcement (RLHF and similar), the pieces are the same:
 
-| Aqui | No LLM |
+| Here | In the LLM |
 |---|---|
-| observação: 6 sensores | o texto até agora |
-| ação: nada, pular, abaixar | o próximo pedaço de palavra (*token*) |
-| partida | uma resposta inteira |
-| recompensa: sobreviver | nota de um modelo treinado com avaliações de pessoas, ou "o código passou nos testes" |
-| ator | o próprio LLM |
-| crítico | uma rede que estima a nota esperada |
-| clip do PPO | um freio para o modelo não se afastar demais do original |
+| observation: 6 sensors | the text so far |
+| action: nothing, jump, duck | the next piece of a word (*token*) |
+| match | a whole answer |
+| reward: surviving | a score from a model trained on people's ratings, or "the code passed the tests" |
+| actor | the LLM itself |
+| critic | a network that estimates the expected score |
+| PPO's clip | a brake so the model does not drift too far from the original |
 
-O PPO foi o algoritmo usado nas primeiras versões de RLHF. Hoje há variações, mas o ciclo continua o desta lição: **tentar, receber nota, ajustar os pesos por gradiente**.
+PPO was the algorithm used in the first versions of RLHF. Today there are variations, but the cycle is still the one from this lesson: **try, get a score, adjust the weights by gradient**.
+
+---
+
+**Previous lesson:** [neuroevolution](../03-neuroevolution/README.md) · **Study home:** [all lessons](../../README.md)
