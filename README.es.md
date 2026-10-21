@@ -19,6 +19,7 @@ Cada lección es una carpeta con un **README que explica los conceptos**, un **s
 | 3 | [Neuroevolución (NEAT)](lessons/03-neuroevolution/README.es.md) | Entrenar **sin gradiente**, por selección y mutación. Registro de cada generación, gráficos de los pesos e informe automático | ~3 s sin ventana |
 | 4 | [Aprendizaje por refuerzo (PPO)](lessons/04-reinforcement/README.es.md) | Un dino aprende por gradiente a partir de recompensas: actor, crítico, ventaja, clip. Dónde queda guardado el aprendizaje y la relación con el ajuste de los LLM | ~2 min sin ventana |
 | 5 | [Imitación](lessons/05-imitation/README.es.md) | Juegas tú y una red aprende a copiarte, o copia al agente de la lección 4. Aprendizaje supervisado a partir de demostraciones, y por qué los LLM imitan antes de usar refuerzo | ~2 s de entrenamiento |
+| 6 | [Aprender a ver](lessons/06-vision/README.es.md) | Una red convolucional (CNN) lee la pantalla en lugar de los 6 números: filtros, capas, y por qué una red falla en escenas que nunca vio (DAgger lo corrige) | ~20 min de entrenamiento; ojos entrenados incluidos |
 
 Las dudas comunes, como "¿alguien le enseña la regla a la IA?" y "¿dónde queda guardado el aprendizaje?", están en [Preguntas que surgen en el camino](#preguntas-que-surgen-en-el-camino).
 
@@ -162,6 +163,22 @@ python lessons/05-imitation/record.py
 
 [Lección 5](lessons/05-imitation/README.es.md).
 
+### Paso 6: aprender a ver
+
+```bash
+python lessons/06-vision/watch.py
+```
+
+El dino juega solo a partir de la pantalla. Una red convolucional (los ojos) lee la imagen y estima los 6 números; el agente de la lección 4 (el cerebro) decide a partir de ellos. Los ojos entrenados ya están en el repositorio; entrenarlos tú mismo tarda unos 20 a 25 minutos:
+
+```bash
+python lessons/06-vision/train_eyes.py
+```
+
+![ojos + cerebro jugando a partir de la pantalla](lessons/06-vision/results/eyes.gif)
+
+[Lección 6](lessons/06-vision/README.es.md).
+
 ### Grabar las animaciones
 
 Los GIF de esta página los generan los propios scripts:
@@ -180,6 +197,10 @@ python lessons/03-neuroevolution/watch.py --gif
 
 ```bash
 python lessons/04-reinforcement/watch.py --gif
+```
+
+```bash
+python lessons/06-vision/watch.py --gif
 ```
 
 ---
@@ -212,13 +233,20 @@ dino-ai-study/
     │   ├── report.py                 # gráficos, mapa de decisión + REPORT.md
     │   ├── watch.py                  # el dino jugando, con su "cabeza" al lado
     │   └── results/models/           # el aprendizaje: archivos con los pesos de la red
-    └── 05-imitation/
+    ├── 05-imitation/
+    │   ├── README.md
+    │   ├── record.py                 # juegas tú (o juega el agente de la lección 4) y se graba cada cuadro
+    │   ├── train.py                  # una red alumna aprende a imitar las grabaciones
+    │   ├── experiments.py            # profesores fuerte, débil y lento: ¿el alumno queda igual de bien?
+    │   ├── watch.py                  # el alumno jugando, junto a las elecciones del profesor
+    │   └── results/demos/            # las demostraciones grabadas (CSV)
+    └── 06-vision/
         ├── README.md
-        ├── record.py                 # juegas tú (o juega el agente de la lección 4) y se graba cada cuadro
-        ├── train.py                  # una red alumna aprende a imitar las grabaciones
-        ├── experiments.py            # profesores fuerte, débil y lento: ¿el alumno queda igual de bien?
-        ├── watch.py                  # el alumno jugando, junto a las elecciones del profesor
-        └── results/demos/            # las demostraciones grabadas (CSV)
+        ├── vision.py                 # la cámara, los ojos (CNN) y el agente de la lección 4 como cerebro
+        ├── train_eyes.py             # entrena los ojos, con rondas de DAgger
+        ├── pixels_to_keys.py         # el otro enfoque: de los píxeles directo a las teclas
+        ├── watch.py                  # ojos + cerebro jugando, con lo que ven los ojos
+        └── results/eyes.pt           # los ojos entrenados
 ```
 
 Cada README existe en tres versiones: `README.md` (inglés), `README.pt-BR.md` (portugués) y `README.es.md` (español).
@@ -252,7 +280,7 @@ Cada README existe en tres versiones: `README.md` (inglés), `README.pt-BR.md` (
 No. En ninguna lección la IA recibe la regla "salta cuando el cactus esté cerca". En la lección 1, la regla existe en el código solo para generar 600 ejemplos ya respondidos, y la red aprende de los ejemplos sin ver nunca la regla. En las lecciones 3 y 4 ni siquiera eso: la IA solo recibe una nota o una recompensa, que dice si salió bien, nunca cómo hacerlo.
 
 **¿El dino aprende solo a ver dónde están los obstáculos?**
-No, y es a propósito. En ninguna lección el dino ve la pantalla. El código del juego lo mide todo y entrega 6 números listos: la distancia, el ancho, la altura y la elevación del próximo obstáculo, la altura del dino y la velocidad. Es como darle un sensor de distancia en lugar de ojos. Lo que aprende solo es **qué hacer** con esos números: cuándo saltar, cuándo agacharse, cuándo esperar. Aprender a ver a partir de los píxeles de la pantalla, como hizo DeepMind con los juegos de Atari, requiere una red convolucional y mucho más entrenamiento. Es el siguiente nivel de este estudio.
+No, y es a propósito. En ninguna lección el dino ve la pantalla. El código del juego lo mide todo y entrega 6 números listos: la distancia, el ancho, la altura y la elevación del próximo obstáculo, la altura del dino y la velocidad. Es como darle un sensor de distancia en lugar de ojos. Lo que aprende solo es **qué hacer** con esos números: cuándo saltar, cuándo agacharse, cuándo esperar. Aprender a ver a partir de los píxeles de la pantalla, como hizo DeepMind con los juegos de Atari, requiere una red convolucional y mucho más entrenamiento. Es la [lección 6](lessons/06-vision/README.es.md): allí, una CNN aprende a estimar esos 6 números a partir de la pantalla, y el dino juega solo con los píxeles.
 
 **¿Y la lección 1, entonces?**
 En la lección 1 ni siquiera hay un dino jugando. Es un ejercicio con ejemplos listos (las *respuestas correctas*, los puntos de los gráficos) para ver el gradiente funcionando de cerca. Los que de verdad aprenden a jugar, sin que nadie sepa la respuesta, son los dinos de las lecciones 3 y 4.

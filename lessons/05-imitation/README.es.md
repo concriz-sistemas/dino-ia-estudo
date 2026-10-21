@@ -154,4 +154,4 @@ Los LLM se entrenan en el mismo orden que este estudio:
 
 Imitar primero y después usar refuerzo combina lo mejor de los dos: la imitación da un buen punto de partida a bajo costo, y el refuerzo lo mejora donde los ejemplos se quedan cortos.
 
-**Lección anterior:** [aprendizaje por refuerzo](../04-reinforcement/README.es.md) · **Inicio del estudio:** [todas las lecciones](../../README.es.md)
+**Lección anterior:** [aprendizaje por refuerzo](../04-reinforcement/README.es.md) · **Inicio del estudio:** [todas las lecciones](../../README.es.md) · **Siguiente lección:** [aprender a ver](../06-vision/README.es.md)

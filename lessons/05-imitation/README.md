@@ -154,4 +154,4 @@ LLMs are trained in the same order as this study:
 
 Imitating first and then using reinforcement combines the strengths of both: imitation gives a good starting point cheaply, and reinforcement improves it where the examples fall short.
 
-**Previous lesson:** [reinforcement learning](../04-reinforcement/README.md) · **Study home:** [all lessons](../../README.md)
+**Previous lesson:** [reinforcement learning](../04-reinforcement/README.md) · **Study home:** [all lessons](../../README.md) · **Next lesson:** [learning to see](../06-vision/README.md)

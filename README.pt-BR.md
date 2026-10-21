@@ -19,6 +19,7 @@ Cada lição é uma pasta com um **README explicando os conceitos**, um **script
 | 3 | [Neuroevolução (NEAT)](lessons/03-neuroevolution/README.pt-BR.md) | Treinar **sem gradiente**, por seleção e mutação. Registro de cada geração, gráficos dos pesos e relatório automático | ~3 s sem janela |
 | 4 | [Aprendizado por reforço (PPO)](lessons/04-reinforcement/README.pt-BR.md) | Um dino aprende por gradiente a partir de recompensas: ator, crítico, vantagem, clip. Onde fica guardado o aprendizado e a ligação com o ajuste de LLMs | ~2 min sem janela |
 | 5 | [Imitação](lessons/05-imitation/README.pt-BR.md) | Você joga e uma rede aprende a copiar você, ou copia o agente da lição 4. Aprendizado supervisionado a partir de demonstrações, e por que os LLMs imitam antes de usar reforço | ~2 s para treinar |
+| 6 | [Aprender a enxergar](lessons/06-vision/README.pt-BR.md) | Uma rede convolucional (CNN) lê a tela em vez dos 6 números: filtros, camadas, e por que uma rede falha em cenas que nunca viu (o DAgger corrige) | ~20 min para treinar; olhos treinados incluídos |
 
 Dúvidas comuns, como "alguém ensina a regra?" e "onde fica guardado o aprendizado?", estão em [Perguntas que aparecem pelo caminho](#perguntas-que-aparecem-pelo-caminho).
 
@@ -162,6 +163,22 @@ python lessons/05-imitation/record.py
 
 [Lição 5](lessons/05-imitation/README.pt-BR.md).
 
+### Passo 6: aprender a enxergar
+
+```bash
+python lessons/06-vision/watch.py
+```
+
+O dino joga só a partir da tela. Uma rede convolucional (os olhos) lê a imagem e estima os 6 números; o agente da lição 4 (o cérebro) decide a partir deles. Os olhos treinados já estão no repositório; treinar você mesmo leva uns 20 a 25 minutos:
+
+```bash
+python lessons/06-vision/train_eyes.py
+```
+
+![olhos + cérebro jogando a partir da tela](lessons/06-vision/results/eyes.gif)
+
+[Lição 6](lessons/06-vision/README.pt-BR.md).
+
 ### Gravando as animações
 
 Os GIFs desta página são gerados pelos próprios scripts:
@@ -180,6 +197,10 @@ python lessons/03-neuroevolution/watch.py --gif
 
 ```bash
 python lessons/04-reinforcement/watch.py --gif
+```
+
+```bash
+python lessons/06-vision/watch.py --gif
 ```
 
 ---
@@ -212,13 +233,20 @@ dino-ai-study/
     │   ├── report.py                 # gráficos, mapa de decisão + REPORT.md
     │   ├── watch.py                  # o dino jogando, com a cabeça dele ao lado
     │   └── results/models/           # o aprendizado: arquivos com os pesos da rede
-    └── 05-imitation/
+    ├── 05-imitation/
+    │   ├── README.md
+    │   ├── record.py                 # você joga (ou o agente da lição 4 joga) e cada quadro é gravado
+    │   ├── train.py                  # uma rede aluna aprende a imitar as gravações
+    │   ├── experiments.py            # professores forte, fraco e lento: o aluno fica tão bom?
+    │   ├── watch.py                  # o aluno jogando, ao lado das escolhas do professor
+    │   └── results/demos/            # as demonstrações gravadas (CSV)
+    └── 06-vision/
         ├── README.md
-        ├── record.py                 # você joga (ou o agente da lição 4 joga) e cada quadro é gravado
-        ├── train.py                  # uma rede aluna aprende a imitar as gravações
-        ├── experiments.py            # professores forte, fraco e lento: o aluno fica tão bom?
-        ├── watch.py                  # o aluno jogando, ao lado das escolhas do professor
-        └── results/demos/            # as demonstrações gravadas (CSV)
+        ├── vision.py                 # a câmera, os olhos (CNN) e o agente da lição 4 como cérebro
+        ├── train_eyes.py             # treina os olhos, com rodadas de DAgger
+        ├── pixels_to_keys.py         # a outra abordagem: dos pixels direto para as teclas
+        ├── watch.py                  # olhos + cérebro jogando, com o que os olhos veem
+        └── results/eyes.pt           # os olhos treinados
 ```
 
 Cada README existe em três versões: `README.md` (inglês), `README.pt-BR.md` (português) e `README.es.md` (espanhol).
@@ -252,7 +280,7 @@ Cada README existe em três versões: `README.md` (inglês), `README.pt-BR.md` (
 Não. Em nenhuma lição a IA recebe a regra "pule quando o cacto estiver perto". Na lição 1, a regra existe no código só para gerar 600 exemplos já respondidos, e a rede aprende com os exemplos sem nunca ver a regra. Nas lições 3 e 4 nem isso: a IA só recebe uma nota ou uma recompensa, que diz se deu certo, nunca como fazer.
 
 **O dino aprende sozinho a enxergar onde estão os obstáculos?**
-Não, e isso é proposital. Em nenhuma lição o dino vê a tela. O código do jogo mede tudo e entrega 6 números prontos: distância, largura, altura e elevação do próximo obstáculo, a altura do dino e a velocidade. É como dar a ele um sensor de distância em vez de olhos. O que ele aprende sozinho é **o que fazer** com esses números: quando pular, quando abaixar, quando esperar. Aprender a enxergar a partir dos pixels da tela, como a DeepMind fez com jogos de Atari, exige uma rede convolucional e muito mais treino. É o próximo nível deste estudo.
+Não, e isso é proposital. Em nenhuma lição o dino vê a tela. O código do jogo mede tudo e entrega 6 números prontos: distância, largura, altura e elevação do próximo obstáculo, a altura do dino e a velocidade. É como dar a ele um sensor de distância em vez de olhos. O que ele aprende sozinho é **o que fazer** com esses números: quando pular, quando abaixar, quando esperar. Aprender a enxergar a partir dos pixels da tela, como a DeepMind fez com jogos de Atari, exige uma rede convolucional e muito mais treino. É a [lição 6](lessons/06-vision/README.pt-BR.md): lá, uma CNN aprende a estimar esses 6 números a partir da tela, e o dino joga só com os pixels.
 
 **E a lição 1, então?**
 A lição 1 nem tem dino jogando. É um exercício com exemplos prontos (o *gabarito*, os pontos dos gráficos) para ver o gradiente funcionando de perto. Quem aprende de verdade a jogar, sem ninguém saber a resposta, são os dinos das lições 3 e 4.

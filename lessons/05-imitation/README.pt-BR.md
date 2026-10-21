@@ -154,4 +154,4 @@ Os LLMs são treinados na mesma ordem deste estudo:
 
 Imitar primeiro e depois usar reforço junta o melhor dos dois: a imitação dá um bom ponto de partida a baixo custo, e o reforço melhora onde os exemplos não bastam.
 
-**Lição anterior:** [aprendizado por reforço](../04-reinforcement/README.pt-BR.md) · **Início do estudo:** [todas as lições](../../README.pt-BR.md)
+**Lição anterior:** [aprendizado por reforço](../04-reinforcement/README.pt-BR.md) · **Início do estudo:** [todas as lições](../../README.pt-BR.md) · **Próxima lição:** [aprender a enxergar](../06-vision/README.pt-BR.md)
