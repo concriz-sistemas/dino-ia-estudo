@@ -156,7 +156,7 @@ And, as here, **using it does not change the file**. Running `watch.py` a thousa
 
 ---
 
-## What about LLMs?
+## How does this relate to LLMs?
 
 When an LLM is fine-tuned with reinforcement (RLHF and similar), the pieces are the same:
 

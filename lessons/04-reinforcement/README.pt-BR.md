@@ -158,7 +158,7 @@ E, como aqui, **usar não muda o arquivo**. Rodar o `watch.py` mil vezes não en
 
 ---
 
-## E os LLMs?
+## Qual a relação com os LLMs?
 
 No ajuste de um LLM com reforço (RLHF e similares), as peças são as mesmas:
 

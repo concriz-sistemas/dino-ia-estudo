@@ -203,7 +203,7 @@ Están al principio del script. No se aprenden — **tú** los eliges.
 
 ---
 
-## ¿Y los LLMs?
+## ¿Qué relación tiene con los LLM?
 
 Un LLM se entrena **exactamente** con este ciclo — forward, pérdida, gradiente, paso — solo que:
 

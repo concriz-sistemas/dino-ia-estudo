@@ -203,7 +203,7 @@ They are at the top of the script. They are not learned — **you** choose them.
 
 ---
 
-## What about LLMs?
+## How does this relate to LLMs?
 
 An LLM is trained with **exactly** this cycle — forward, loss, gradient, step — except that:
 
