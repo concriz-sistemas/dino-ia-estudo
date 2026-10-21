@@ -1,0 +1,77 @@
+[
+ {
+  "round": 0,
+  "examples": 15000,
+  "hard": [
+   88,
+   88,
+   312,
+   426,
+   1034,
+   832
+  ],
+  "crashed_into": [
+   "big_cactus",
+   "big_cactus",
+   "big_cactus",
+   "big_cactus",
+   "bird_staircase",
+   "big_cactus"
+  ],
+  "original": [
+   88,
+   88,
+   312
+  ]
+ },
+ {
+  "round": 1,
+  "examples": 15988,
+  "hard": [
+   1032,
+   1053,
+   788,
+   1207,
+   1034,
+   1850
+  ],
+  "crashed_into": [
+   "bird_staircase",
+   "bird_mid",
+   "bird_staircase",
+   "big_cactus",
+   "bird_staircase",
+   "bird_low"
+  ],
+  "original": [
+   1551,
+   776,
+   1335
+  ]
+ },
+ {
+  "round": 2,
+  "examples": 18351,
+  "hard": [
+   1032,
+   677,
+   312,
+   245,
+   1034,
+   349
+  ],
+  "crashed_into": [
+   "bird_staircase",
+   "cactus_group",
+   "big_cactus",
+   "cactus_group",
+   "bird_staircase",
+   "cactus_group"
+  ],
+  "original": [
+   1340,
+   677,
+   312
+  ]
+ }
+]

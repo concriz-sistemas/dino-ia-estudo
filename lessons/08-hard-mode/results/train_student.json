@@ -1,0 +1,177 @@
+[
+ {
+  "round": 0,
+  "examples": 15000,
+  "hard": [
+   3047,
+   3303,
+   3047,
+   3105,
+   3023,
+   3499
+  ],
+  "crashed_into": [
+   "bird_high",
+   "bird_pair",
+   "bird_pair",
+   "bird_pair",
+   "bird_tunnel",
+   "bird_high"
+  ],
+  "original": [
+   3231,
+   3331,
+   2624
+  ]
+ },
+ {
+  "round": 1,
+  "examples": 20676,
+  "hard": [
+   1030,
+   1288,
+   788,
+   1064,
+   1032,
+   1118
+  ],
+  "crashed_into": [
+   "bird_staircase",
+   "bird_staircase",
+   "bird_staircase",
+   "bird_staircase",
+   "bird_staircase",
+   "bird_staircase"
+  ],
+  "original": [
+   5000,
+   5000,
+   5000
+  ]
+ },
+ {
+  "round": 2,
+  "examples": 25764,
+  "hard": [
+   1030,
+   1288,
+   788,
+   1064,
+   1032,
+   1118
+  ],
+  "crashed_into": [
+   "bird_staircase",
+   "bird_staircase",
+   "bird_staircase",
+   "bird_staircase",
+   "bird_staircase",
+   "bird_staircase"
+  ],
+  "original": [
+   5000,
+   5000,
+   5000
+  ]
+ },
+ {
+  "round": 3,
+  "examples": 32773,
+  "hard": [
+   1030,
+   5000,
+   5000,
+   1064,
+   1032,
+   5000
+  ],
+  "crashed_into": [
+   "bird_staircase",
+   "-",
+   "-",
+   "bird_staircase",
+   "bird_staircase",
+   "-"
+  ],
+  "original": [
+   5000,
+   5000,
+   5000
+  ]
+ },
+ {
+  "round": 4,
+  "examples": 42773,
+  "hard": [
+   1030,
+   5000,
+   5000,
+   5000,
+   1032,
+   5000
+  ],
+  "crashed_into": [
+   "bird_staircase",
+   "-",
+   "-",
+   "-",
+   "bird_staircase",
+   "-"
+  ],
+  "original": [
+   5000,
+   5000,
+   5000
+  ]
+ },
+ {
+  "round": 5,
+  "examples": 52773,
+  "hard": [
+   5000,
+   5000,
+   5000,
+   5000,
+   5000,
+   5000
+  ],
+  "crashed_into": [
+   "-",
+   "-",
+   "-",
+   "-",
+   "-",
+   "-"
+  ],
+  "original": [
+   5000,
+   5000,
+   5000
+  ]
+ },
+ {
+  "round": 6,
+  "examples": 62773,
+  "hard": [
+   5000,
+   5000,
+   5000,
+   5000,
+   5000,
+   5000
+  ],
+  "crashed_into": [
+   "-",
+   "-",
+   "-",
+   "-",
+   "-",
+   "-"
+  ],
+  "original": [
+   5000,
+   5000,
+   5000
+  ]
+ }
+]
