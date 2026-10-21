@@ -240,7 +240,7 @@ It is the same idea at a gigantic scale. An LLM is also a weights file, only wit
 
 ---
 
-## How does this relate to LLMs (ChatGPT, Claude...)?
+## How does this relate to LLMs?
 
 They use the same building blocks as these lessons, at a huge scale:
 

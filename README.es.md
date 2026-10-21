@@ -242,7 +242,7 @@ Es la misma idea a una escala gigantesca. Un LLM también es un archivo de pesos
 
 ---
 
-## ¿Qué relación tiene con los LLM (ChatGPT, Claude...)?
+## ¿Qué relación tiene con los LLM?
 
 Usan los mismos bloques de estas lecciones, a una escala enorme:
 

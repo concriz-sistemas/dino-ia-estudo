@@ -242,7 +242,7 @@ Fica, num arquivo de pesos. O dino da lição 4 é o arquivo `lessons/04-reinfor
 
 ---
 
-## Qual a relação com os LLMs (ChatGPT, Claude...)?
+## Qual a relação com os LLMs?
 
 Usam os mesmos blocos destas lições, em escala gigantesca:
 
