@@ -1,4 +1,4 @@
-passo,media_pontos_50,entropia,erro_critico,perda_politica,kl_aprox,fracao_clip,variancia_explicada
+step,mean_score_50,entropy,critic_error,policy_loss,approx_kl,clip_fraction,explained_variance
 8192,109.5,1.09261,1.67151,-0.00297,0.008467,0.0544,-0.017
 16384,122.3,1.07246,1.6245,-0.005,0.006505,0.0353,0.3954
 24576,138.8,1.05576,2.11873,-0.00342,0.006595,0.0114,0.4634

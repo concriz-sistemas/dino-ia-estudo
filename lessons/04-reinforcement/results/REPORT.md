@@ -1,51 +1,51 @@
-# Relatório do treino — aprendizado por reforço (PPO)
+# Training report — reinforcement learning (PPO)
 
-> Gerado automaticamente por `relatorio.py` a partir de `episodios.csv`, `atualizacoes.csv` e dos modelos em `modelos/`.
-> Rode o treino de novo e este relatório muda.
+> Generated automatically by `report.py` from `episodes.csv`, `updates.csv` and the models in `models/`.
+> Run the training again and this report changes.
 
-## Resumo
+## Summary
 
 | | |
 |---|---|
-| Passos de treino | 2.002.960 |
-| Partidas jogadas no treino | 8.206 |
-| Média de pontos: 200 primeiras → 200 últimas partidas | 115 → 4329 |
-| Primeiro modelo salvo com média ≥ 4000 em partidas novas | 750k passos |
-| Modelo final em 10 partidas novas | média 5000, pior 5000, melhor 5000 |
+| Training steps | 2,002,960 |
+| Matches played during training | 8,206 |
+| Mean score: first 200 → last 200 matches | 115 → 4329 |
+| First saved model with mean ≥ 4000 on new matches | 750k steps |
+| Final model on 10 new matches | mean 5000, worst 5000, best 5000 |
 
-## 1. Pontos por partida
+## 1. Score per match
 
-![pontos](01_pontos.png)
+![scores](01_scores.png)
 
-Repare no **platô**: por um bom tempo o agente não melhora, e de repente a média dispara. Ele descobriu que pular na hora certa rende mais do que pular sem parar.
+Notice the **plateau**: for a good while the agent does not improve, and then suddenly the average shoots up. It discovered that jumping at the right moment pays off more than jumping nonstop.
 
-## 2. Por dentro do PPO
+## 2. Inside PPO
 
 ![ppo](02_ppo.png)
 
-- **Entropia** despenca junto com o salto dos pontos: no começo o agente escolhe quase ao acaso; quando descobre o que funciona, fica decidido. Ela não vai a zero porque, com o obstáculo longe, tanto faz a ação, e o bônus de entropia premia continuar explorando.
-- **Erro do crítico** sobe enquanto o agente melhora (as partidas ficam longas e imprevisíveis) e cai quando ele passa a sobreviver quase sempre: aí fica fácil prever a recompensa.
-- **KL** e **fração do clip** ficam pequenos o tempo todo: é o *clip* do PPO segurando cada atualização para a política não mudar demais de uma vez.
+- **Entropy** plunges together with the jump in scores: at first the agent picks almost at random; once it discovers what works, it becomes decisive. It does not go to zero because, with the obstacle far away, the action does not matter, and the entropy bonus rewards it for keeping on exploring.
+- **Critic's error** rises while the agent improves (matches get long and unpredictable) and falls once it survives almost every time: then the reward is easy to predict.
+- **KL** and **clip fraction** stay small the whole time: that is PPO's *clip* holding back each update so the policy does not change too much at once.
 
-## 3. Cada modelo salvo em partidas novas
+## 3. Each saved model on new matches
 
-![avaliação](03_avaliacao.png)
+![evaluation](03_evaluation.png)
 
-| Modelo | Média | Pior | Melhor |
+| Model | Mean | Worst | Best |
 |---|---|---|---|
-| 0k passos | 86 | 86 | 86 |
-| 250k passos | 116 | 88 | 179 |
-| 500k passos | 145 | 96 | 354 |
-| 750k passos | 5000 | 5000 | 5000 |
-| 1000k passos | 5000 | 5000 | 5000 |
-| 1500k passos | 5000 | 5000 | 5000 |
-| 2000k passos | 5000 | 5000 | 5000 |
+| 0k steps | 86 | 86 | 86 |
+| 250k steps | 116 | 88 | 179 |
+| 500k steps | 145 | 96 | 354 |
+| 750k steps | 5000 | 5000 | 5000 |
+| 1000k steps | 5000 | 5000 | 5000 |
+| 1500k steps | 5000 | 5000 | 5000 |
+| 2000k steps | 5000 | 5000 | 5000 |
 
-## 4. O que a rede "pensa"
+## 4. What the network "thinks"
 
-![decisões](04_decisoes.png)
+![decisions](04_decisions.png)
 
-Cada ponto é uma pergunta feita à rede: "com o obstáculo a esta distância e o jogo nesta velocidade, o que você faz?".
+Each point is a question asked to the network: "with the obstacle at this distance and the game at this speed, what do you do?".
 
-- **Em cima, o cacto:** no começo a rede responde igual para tudo. No fim aparece uma **fronteira inclinada**: pular quando o cacto chega perto, e mais cedo quanto mais rápido o jogo. É a mesma ideia da faixa da lição 1, mas lá a rede recebeu exemplos prontos; aqui, só a recompensa.
-- **Embaixo, o pássaro na altura da cabeça:** a cor mostra a ação mais provável. Repare que a rede não precisa escolher o que nós escolheríamos: pular por cima do pássaro também funciona. A recompensa só diz se deu certo, não como.
+- **Top, the cactus:** at first the network answers the same for everything. At the end a **slanted boundary** appears: jump when the cactus gets close, and earlier the faster the game. It is the same idea as the band from lesson 1, but there the network was given ready-made examples; here, only the reward.
+- **Bottom, the bird at head height:** the color shows the most likely action. Notice that the network does not have to choose what we would choose: jumping over the bird also works. The reward only says whether it worked, not how.
