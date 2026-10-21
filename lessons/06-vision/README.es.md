@@ -147,4 +147,4 @@ Los autos autónomos y los robots usan la misma idea. Gran parte de su entrenami
 - **Las escenas nunca vistas en el entrenamiento** también son un problema para los LLM. Cuando una pregunta es muy distinta de todo lo que había en sus datos de entrenamiento, un modelo puede responder con seguridad y aun así equivocarse, igual que los ojos que "vieron" un cactus lejos cuando estaba justo delante del dino.
 - **Las etiquetas son la parte cara.** Aquí el juego las dio gratis. Para los LLM, los buenos ejemplos escritos por personas cuestan caro, y esa es una de las razones por las que primero se preentrenan con texto en bruto: la siguiente palabra es una etiqueta que sale gratis.
 
-**Lección anterior:** [imitación](../05-imitation/README.es.md) · **Inicio del estudio:** [todas las lecciones](../../README.es.md)
+**Lección anterior:** [imitación](../05-imitation/README.es.md) · **Inicio del estudio:** [todas las lecciones](../../README.es.md) · **Siguiente lección:** [un mini modelo de lenguaje](../07-language-model/README.es.md)

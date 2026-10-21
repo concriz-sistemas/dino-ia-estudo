@@ -20,6 +20,7 @@ Cada lección es una carpeta con un **README que explica los conceptos**, un **s
 | 4 | [Aprendizaje por refuerzo (PPO)](lessons/04-reinforcement/README.es.md) | Un dino aprende por gradiente a partir de recompensas: actor, crítico, ventaja, clip. Dónde queda guardado el aprendizaje y la relación con el ajuste de los LLM | ~2 min sin ventana |
 | 5 | [Imitación](lessons/05-imitation/README.es.md) | Juegas tú y una red aprende a copiarte, o copia al agente de la lección 4. Aprendizaje supervisado a partir de demostraciones, y por qué los LLM imitan antes de usar refuerzo | ~2 s de entrenamiento |
 | 6 | [Aprender a ver](lessons/06-vision/README.es.md) | Una red convolucional (CNN) lee la pantalla en lugar de los 6 números: filtros, capas, y por qué una red falla en escenas que nunca vio (DAgger lo corrige) | ~20 min de entrenamiento; ojos entrenados incluidos |
+| 7 | [Un mini modelo de lenguaje](lessons/07-language-model/README.es.md) | Un *transformer* diminuto, la arquitectura de un LLM, aprende a escribir prediciendo el siguiente carácter: tokens, atención, temperatura, *embeddings* y similitud coseno de verdad, y memorizar vs. aprender | ~30 s de entrenamiento |
 
 Las dudas comunes, como "¿alguien le enseña la regla a la IA?" y "¿dónde queda guardado el aprendizaje?", están en [Preguntas que surgen en el camino](#preguntas-que-surgen-en-el-camino).
 
@@ -179,6 +180,22 @@ python lessons/06-vision/train_eyes.py
 
 [Lección 6](lessons/06-vision/README.es.md).
 
+### Paso 7: un mini modelo de lenguaje
+
+```bash
+python lessons/07-language-model/train.py
+```
+
+Un *transformer* diminuto, la misma arquitectura de un LLM, lee los README de este estudio y aprende a predecir el siguiente carácter. En unos 30 segundos pasa de letras al azar a un texto que suena a inglés. Después, haz que escriba:
+
+```bash
+python lessons/07-language-model/generate.py
+```
+
+![el mini modelo de lenguaje escribiendo](lessons/07-language-model/results/generation.gif)
+
+[Lección 7](lessons/07-language-model/README.es.md).
+
 ### Grabar las animaciones
 
 Los GIF de esta página los generan los propios scripts:
@@ -240,13 +257,20 @@ dino-ai-study/
     │   ├── experiments.py            # profesores fuerte, débil y lento: ¿el alumno queda igual de bien?
     │   ├── watch.py                  # el alumno jugando, junto a las elecciones del profesor
     │   └── results/demos/            # las demostraciones grabadas (CSV)
-    └── 06-vision/
+    ├── 06-vision/
+    │   ├── README.md
+    │   ├── vision.py                 # la cámara, los ojos (CNN) y el agente de la lección 4 como cerebro
+    │   ├── train_eyes.py             # entrena los ojos, con rondas de DAgger
+    │   ├── pixels_to_keys.py         # el otro enfoque: de los píxeles directo a las teclas
+    │   ├── watch.py                  # ojos + cerebro jugando, con lo que ven los ojos
+    │   └── results/eyes.pt           # los ojos entrenados
+    └── 07-language-model/
         ├── README.md
-        ├── vision.py                 # la cámara, los ojos (CNN) y el agente de la lección 4 como cerebro
-        ├── train_eyes.py             # entrena los ojos, con rondas de DAgger
-        ├── pixels_to_keys.py         # el otro enfoque: de los píxeles directo a las teclas
-        ├── watch.py                  # ojos + cerebro jugando, con lo que ven los ojos
-        └── results/eyes.pt           # los ojos entrenados
+        ├── tiny_lm.py                # el texto, el bigrama y el transformer diminuto
+        ├── train.py                  # lo entrena y guarda el mejor modelo en texto nuevo
+        ├── generate.py               # hace que escriba, con temperatura
+        ├── inside.py                 # embeddings, similitud coseno y atención
+        └── data/study.txt            # el texto de entrenamiento: los README de este estudio
 ```
 
 Cada README existe en tres versiones: `README.md` (inglés), `README.pt-BR.md` (portugués) y `README.es.md` (español).
@@ -312,7 +336,7 @@ Es la misma idea a una escala gigantesca. Un LLM también es un archivo de pesos
 
 Usan los mismos bloques de estas lecciones, a una escala enorme:
 
-1. **Preentrenamiento** — el ciclo de la **Lección 1** (forward, pérdida, gradiente, paso), con miles de millones de pesos aprendiendo a predecir la siguiente palabra en billones de textos. En cierto modo ya es imitación: el modelo copia cómo escriben las personas.
+1. **Preentrenamiento** — el ciclo de la **Lección 1** (forward, pérdida, gradiente, paso), con miles de millones de pesos aprendiendo a predecir la siguiente palabra en billones de textos. En cierto modo ya es imitación: el modelo copia cómo escriben las personas. La [lección 7](lessons/07-language-model/README.es.md) construye uno así, en miniatura.
 2. **Ajuste supervisado** (*supervised fine-tuning*) — la **Lección 5**: personas escriben ejemplos de buenas respuestas y el modelo aprende a imitarlos.
 3. **Aprendizaje por refuerzo** — el ciclo de la **Lección 4** (actuar, recibir una recompensa, ajustar por gradiente): el modelo genera respuestas, recibe una nota (de personas o de pruebas automáticas) y se ajusta para sacar mejores notas.
 

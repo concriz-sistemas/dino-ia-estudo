@@ -280,7 +280,7 @@ In the trained network:
 - The two neurons on the edges of the band have vectors (−8.91, 3.07) and (−8.15, 1.97). Their cosine similarity is **0.996**: they point almost the same way, which is why the two edges of the band are almost parallel.
 - Another neuron, with tiny weights (−0.17, 0.08), also scores **0.995** against the first one. It points the same way but is 50 times weaker. Cosine similarity only looks at direction, not size.
 
-LLMs use the same tool on a much bigger scale. They turn each word or text into a vector with hundreds or thousands of numbers (an *embedding*). Texts with similar meaning end up pointing in similar directions, so "dog" and "puppy" have a high cosine similarity and "dog" and "spreadsheet" a low one. That is how search engines and assistants find text with a similar meaning, even when the words are different.
+LLMs use the same tool on a much bigger scale. They turn each word or text into a vector with hundreds or thousands of numbers (an *embedding*). Texts with similar meaning end up pointing in similar directions, so "dog" and "puppy" have a high cosine similarity and "dog" and "spreadsheet" a low one. That is how search engines and assistants find text with a similar meaning, even when the words are different. [Lesson 7](../07-language-model/README.md) does it for real, with a tiny language model.
 
 ---
 

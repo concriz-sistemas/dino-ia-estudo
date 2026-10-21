@@ -147,4 +147,4 @@ Self-driving cars and robots use the same idea. A lot of their training happens 
 - **Scenes never seen in training** are a problem for LLMs too. When a question is very different from anything in its training data, a model can answer with confidence and still be wrong, just like the eyes that "saw" a cactus far away when it was right in front of the dino.
 - **Labels are the expensive part.** Here the game gave them for free. For LLMs, good examples written by people are costly, which is one reason they are pre-trained on raw text first: the next word is a label that comes for free.
 
-**Previous lesson:** [imitation](../05-imitation/README.md) · **Study home:** [all lessons](../../README.md)
+**Previous lesson:** [imitation](../05-imitation/README.md) · **Study home:** [all lessons](../../README.md) · **Next lesson:** [a tiny language model](../07-language-model/README.md)

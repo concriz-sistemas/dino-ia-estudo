@@ -280,7 +280,7 @@ En la red entrenada:
 - Las dos neuronas de los bordes de la franja tienen los vectores (−8.91, 3.07) y (−8.15, 1.97). Su similitud coseno es **0.996**: apuntan casi hacia el mismo lado, y por eso los dos bordes de la franja son casi paralelos.
 - Otra neurona, con pesos diminutos (−0.17, 0.08), también obtiene **0.995** frente a la primera. Apunta hacia el mismo lado, pero es 50 veces más débil. La similitud coseno solo mira la dirección, no el tamaño.
 
-Los LLM usan la misma herramienta a una escala mucho mayor. Convierten cada palabra o texto en un vector con cientos o miles de números (un *embedding*). Los textos con significado parecido terminan apuntando en direcciones parecidas, así que "perro" y "cachorro" tienen una similitud coseno alta, y "perro" y "hoja de cálculo", una baja. Así es como los buscadores y los asistentes encuentran textos con un significado parecido, incluso cuando las palabras son diferentes.
+Los LLM usan la misma herramienta a una escala mucho mayor. Convierten cada palabra o texto en un vector con cientos o miles de números (un *embedding*). Los textos con significado parecido terminan apuntando en direcciones parecidas, así que "perro" y "cachorro" tienen una similitud coseno alta, y "perro" y "hoja de cálculo", una baja. Así es como los buscadores y los asistentes encuentran textos con un significado parecido, incluso cuando las palabras son diferentes. La [lección 7](../07-language-model/README.es.md) lo hace de verdad, con un mini modelo de lenguaje.
 
 ---
 

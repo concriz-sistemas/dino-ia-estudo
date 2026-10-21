@@ -20,6 +20,7 @@ Cada lição é uma pasta com um **README explicando os conceitos**, um **script
 | 4 | [Aprendizado por reforço (PPO)](lessons/04-reinforcement/README.pt-BR.md) | Um dino aprende por gradiente a partir de recompensas: ator, crítico, vantagem, clip. Onde fica guardado o aprendizado e a ligação com o ajuste de LLMs | ~2 min sem janela |
 | 5 | [Imitação](lessons/05-imitation/README.pt-BR.md) | Você joga e uma rede aprende a copiar você, ou copia o agente da lição 4. Aprendizado supervisionado a partir de demonstrações, e por que os LLMs imitam antes de usar reforço | ~2 s para treinar |
 | 6 | [Aprender a enxergar](lessons/06-vision/README.pt-BR.md) | Uma rede convolucional (CNN) lê a tela em vez dos 6 números: filtros, camadas, e por que uma rede falha em cenas que nunca viu (o DAgger corrige) | ~20 min para treinar; olhos treinados incluídos |
+| 7 | [Um mini modelo de linguagem](lessons/07-language-model/README.pt-BR.md) | Um *transformer* minúsculo, a arquitetura de um LLM, aprende a escrever prevendo o próximo caractere: tokens, atenção, temperatura, *embeddings* e similaridade de cosseno de verdade, e decorar × aprender | ~30 s para treinar |
 
 Dúvidas comuns, como "alguém ensina a regra?" e "onde fica guardado o aprendizado?", estão em [Perguntas que aparecem pelo caminho](#perguntas-que-aparecem-pelo-caminho).
 
@@ -179,6 +180,22 @@ python lessons/06-vision/train_eyes.py
 
 [Lição 6](lessons/06-vision/README.pt-BR.md).
 
+### Passo 7: um mini modelo de linguagem
+
+```bash
+python lessons/07-language-model/train.py
+```
+
+Um *transformer* minúsculo, a mesma arquitetura de um LLM, lê os READMEs deste estudo e aprende a prever o próximo caractere. Em uns 30 segundos, ele passa de letras aleatórias a um texto que soa como inglês. Depois, faça ele escrever:
+
+```bash
+python lessons/07-language-model/generate.py
+```
+
+![o mini modelo de linguagem escrevendo](lessons/07-language-model/results/generation.gif)
+
+[Lição 7](lessons/07-language-model/README.pt-BR.md).
+
 ### Gravando as animações
 
 Os GIFs desta página são gerados pelos próprios scripts:
@@ -240,13 +257,20 @@ dino-ai-study/
     │   ├── experiments.py            # professores forte, fraco e lento: o aluno fica tão bom?
     │   ├── watch.py                  # o aluno jogando, ao lado das escolhas do professor
     │   └── results/demos/            # as demonstrações gravadas (CSV)
-    └── 06-vision/
+    ├── 06-vision/
+    │   ├── README.md
+    │   ├── vision.py                 # a câmera, os olhos (CNN) e o agente da lição 4 como cérebro
+    │   ├── train_eyes.py             # treina os olhos, com rodadas de DAgger
+    │   ├── pixels_to_keys.py         # a outra abordagem: dos pixels direto para as teclas
+    │   ├── watch.py                  # olhos + cérebro jogando, com o que os olhos veem
+    │   └── results/eyes.pt           # os olhos treinados
+    └── 07-language-model/
         ├── README.md
-        ├── vision.py                 # a câmera, os olhos (CNN) e o agente da lição 4 como cérebro
-        ├── train_eyes.py             # treina os olhos, com rodadas de DAgger
-        ├── pixels_to_keys.py         # a outra abordagem: dos pixels direto para as teclas
-        ├── watch.py                  # olhos + cérebro jogando, com o que os olhos veem
-        └── results/eyes.pt           # os olhos treinados
+        ├── tiny_lm.py                # o texto, o bigrama e o transformer minúsculo
+        ├── train.py                  # treina e guarda o melhor modelo em texto novo
+        ├── generate.py               # faz o modelo escrever, com temperatura
+        ├── inside.py                 # embeddings, similaridade de cosseno e atenção
+        └── data/study.txt            # o texto de treino: os READMEs deste estudo
 ```
 
 Cada README existe em três versões: `README.md` (inglês), `README.pt-BR.md` (português) e `README.es.md` (espanhol).
@@ -312,7 +336,7 @@ Fica, num arquivo de pesos. O dino da lição 4 é o arquivo `lessons/04-reinfor
 
 Usam os mesmos blocos destas lições, em escala gigantesca:
 
-1. **Pré-treinamento** — o ciclo da **Lição 1** (forward, perda, gradiente, passo), com bilhões de pesos aprendendo a prever a próxima palavra em trilhões de textos. De certa forma já é imitação: o modelo copia o jeito como as pessoas escrevem.
+1. **Pré-treinamento** — o ciclo da **Lição 1** (forward, perda, gradiente, passo), com bilhões de pesos aprendendo a prever a próxima palavra em trilhões de textos. De certa forma já é imitação: o modelo copia o jeito como as pessoas escrevem. A [lição 7](lessons/07-language-model/README.pt-BR.md) constrói um modelo assim, em miniatura.
 2. **Ajuste supervisionado** (*supervised fine-tuning*) — a **Lição 5**: pessoas escrevem exemplos de boas respostas e o modelo aprende a imitá-los.
 3. **Aprendizado por reforço** — o ciclo da **Lição 4** (agir, receber recompensa, ajustar por gradiente): o modelo gera respostas, recebe uma nota (de pessoas ou de testes automáticos) e é ajustado para tirar notas melhores.
 

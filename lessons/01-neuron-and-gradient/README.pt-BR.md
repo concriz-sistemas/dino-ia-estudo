@@ -280,7 +280,7 @@ Na rede treinada:
 - Os dois neurônios das bordas da faixa têm os vetores (−8,91; 3,07) e (−8,15; 1,97). A similaridade de cosseno entre eles é **0,996**: apontam quase para o mesmo lado, e é por isso que as duas bordas da faixa são quase paralelas.
 - Outro neurônio, com pesos minúsculos (−0,17; 0,08), também marca **0,995** em relação ao primeiro. Ele aponta para o mesmo lado, mas é 50 vezes mais fraco. A similaridade de cosseno só olha a direção, não o tamanho.
 
-Os LLMs usam a mesma ferramenta numa escala muito maior. Eles transformam cada palavra ou texto num vetor com centenas ou milhares de números (um *embedding*). Textos com significado parecido acabam apontando em direções parecidas, então "cachorro" e "filhote" têm similaridade de cosseno alta, e "cachorro" e "planilha", baixa. É assim que buscadores e assistentes encontram textos com significado parecido, mesmo quando as palavras são diferentes.
+Os LLMs usam a mesma ferramenta numa escala muito maior. Eles transformam cada palavra ou texto num vetor com centenas ou milhares de números (um *embedding*). Textos com significado parecido acabam apontando em direções parecidas, então "cachorro" e "filhote" têm similaridade de cosseno alta, e "cachorro" e "planilha", baixa. É assim que buscadores e assistentes encontram textos com significado parecido, mesmo quando as palavras são diferentes. A [lição 7](../07-language-model/README.pt-BR.md) faz isso de verdade, com um mini modelo de linguagem.
 
 ---
 

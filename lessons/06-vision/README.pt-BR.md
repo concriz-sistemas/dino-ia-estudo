@@ -147,4 +147,4 @@ Carros autônomos e robôs usam a mesma ideia. Boa parte do treino deles acontec
 - **Cenas nunca vistas no treino** também são um problema para os LLMs. Quando uma pergunta é muito diferente de tudo o que havia nos dados de treino, um modelo pode responder com confiança e mesmo assim errar, como os olhos que "viram" um cacto longe quando ele estava bem na frente do dino.
 - **Os rótulos são a parte cara.** Aqui o jogo deu os rótulos de graça. Para os LLMs, bons exemplos escritos por pessoas custam caro, e esse é um dos motivos de eles serem pré-treinados primeiro com texto bruto: a próxima palavra é um rótulo que vem de graça.
 
-**Lição anterior:** [imitação](../05-imitation/README.pt-BR.md) · **Início do estudo:** [todas as lições](../../README.pt-BR.md)
+**Lição anterior:** [imitação](../05-imitation/README.pt-BR.md) · **Início do estudo:** [todas as lições](../../README.pt-BR.md) · **Próxima lição:** [um mini modelo de linguagem](../07-language-model/README.pt-BR.md)
