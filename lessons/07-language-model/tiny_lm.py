@@ -127,13 +127,13 @@ class Block(nn.Module):
       2. a small network (MLP) that processes what attention gathered.
     """
 
-    def __init__(self):
+    def __init__(self, dropout=DROPOUT):
         super().__init__()
         self.norm1 = nn.LayerNorm(EMBED)
-        self.attention = nn.MultiheadAttention(EMBED, HEADS, dropout=DROPOUT, batch_first=True)
+        self.attention = nn.MultiheadAttention(EMBED, HEADS, dropout=dropout, batch_first=True)
         self.norm2 = nn.LayerNorm(EMBED)
         self.mlp = nn.Sequential(nn.Linear(EMBED, 4 * EMBED), nn.GELU(), nn.Linear(4 * EMBED, EMBED))
-        self.drop = nn.Dropout(DROPOUT)
+        self.drop = nn.Dropout(dropout)
         self.last_weights = None  # filled when asked to, so we can draw what attention looks at
 
     def forward(self, x, mask, keep_weights=False):
@@ -146,11 +146,11 @@ class Block(nn.Module):
 
 
 class TinyGPT(nn.Module):
-    def __init__(self, n_tokens):
+    def __init__(self, n_tokens, dropout=DROPOUT):
         super().__init__()
         self.token_embedding = nn.Embedding(n_tokens, EMBED)     # one vector of 64 numbers per character
         self.position_embedding = nn.Embedding(CONTEXT, EMBED)   # one vector per position (1st, 2nd, ...)
-        self.blocks = nn.ModuleList([Block() for _ in range(LAYERS)])
+        self.blocks = nn.ModuleList([Block(dropout) for _ in range(LAYERS)])
         self.norm = nn.LayerNorm(EMBED)
         self.out = nn.Linear(EMBED, n_tokens)                    # a score for each possible next character
         # The mask stops each position from looking at the FUTURE: no peeking at the answer
