@@ -10,7 +10,7 @@
 python lessons/01-neuron-and-gradient/train_from_scratch.py --live
 ```
 
-The script trains the network (about 5 seconds), records the value of every weight at every epoch and then **plays the training back in a window, like a video**: what the network thinks, the loss going down, each of the 25 weights adjusting and the gradient of each weight at that moment.
+The script trains the network (about 5 seconds), records the value of every weight at every epoch and then **plays the training back in a window, like a video**: what the network thinks (with the straight line of each hidden neuron in purple), the loss going down, each of the 25 weights adjusting and the gradient of each weight at that moment.
 
 | Key | What it does |
 |---|---|
@@ -76,6 +76,8 @@ output = activation( weight₁·input₁ + weight₂·input₂ + ... + bias )
 | **Bias** | A fixed "push" that shifts the neuron's threshold | `b1`, `b2` |
 | **Activation** | A curve that bends the sum. Without it, the whole network would be just a straight line | `tanh`, `sigmoid` |
 | **Forward** | Passing the inputs through the network to get the prediction | `forward()` |
+
+The sum inside the activation, `weight₁·input₁ + weight₂·input₂ + bias`, is exactly the formula of a **linear regression**. Section 6 shows what that means in practice.
 
 This network has 2×6 + 6 + 6×1 + 1 = **25 adjustable numbers**. Training = finding good values for these 25 numbers. (A large LLM has **hundreds of billions** of them — but the idea is the same.)
 
@@ -154,7 +156,7 @@ The title of this chart sums it up: "Background = what the network thinks (red =
 - **`epoch 300`:** it has already found the band, still blurry.
 - **`epoch 4000`:** sharp band, practically the same as the true rule.
 
-### Why does the shape appear fast and then "stop"?
+### Two phases: fast descent, then fine-tuning
 
 In the replay (`--live`) you can see that the band shows up in the first few hundred epochs and then barely changes. There are two phases:
 
@@ -163,22 +165,33 @@ In the replay (`--live`) you can see that the band shows up in the first few hun
 
 The shape doesn't stand completely still: the weights keep growing slowly (weights panel), and that makes the edges of the band **sharper**. The network is getting more *confident*. With cross-entropy, you can always lower the loss a little more by betting with more certainty, so the weights grow without stopping, more and more slowly.
 
-**Does this have to do with linear regression?** Yes, a lot. Each neuron computes `w₁·x₁ + w₂·x₂ + b`, exactly the linear regression formula. Put a sigmoid on top and it becomes **logistic regression**: that's the "single neuron" of section 6, which can only draw a straight line. The network in this lesson is 6 of those lines (with `tanh`) combined by the output layer. That's how two edges become a band.
-
-**What about cosine?** It doesn't show up here. The "S" curves are `tanh` and the sigmoid, and the drop in the loss looks like a decay, with nothing periodic. Waves only show up if the learning rate is too big and the loss keeps bouncing (exercise 1). Cosine shows up elsewhere in AI:
-
-- **Cosine similarity:** measures how much two vectors point the same way. It's how LLMs and search engines compare the "meaning" of texts (embeddings).
-- **Cosine schedule:** instead of a fixed learning rate like here, the rate starts high and goes down following half a cosine wave. It's common when training LLMs: big steps at the start, small steps in the fine-tuning, the same two phases you see in the replay.
+Section 8 shows these two phases from above, on a map of the loss.
 
 ---
 
-## 6. Why do we need a hidden layer?
+## 6. Each neuron is a linear regression
+
+Every neuron computes `w₁·distance + w₂·speed + b`, the formula of a **linear regression**. Where that sum is zero, the neuron flips from "no" to "yes", and those points form a **straight line** on the chart. The activation (`tanh` or `sigmoid`) only bends the answer near the line; it doesn't change where the line is.
+
+### A single neuron: one line is not enough
 
 ![single neuron](results/05_single_neuron.png)
 
-A **single neuron** can only draw **one straight line**. The band needs two edges, so it gives up and learns "never jump" — which gets 77% right only because most examples are "don't jump". This is a classic trap: **high accuracy doesn't mean it learned**.
+A neuron with a sigmoid and no hidden layer is a **logistic regression**: it can only draw **one straight line**. The band needs two edges, so it gives up and learns "never jump" — which gets 77% right only because most examples are "don't jump". This is a classic trap: **high accuracy doesn't mean it learned**.
 
-With 6 hidden neurons, each one draws a straight line, and the output layer combines those lines into a more complex shape. **Depth = ability to represent complicated patterns.**
+### Six neurons: six lines, combined into a band
+
+![hidden neuron lines](results/06_hidden_lines.png)
+
+Each purple line is where one hidden neuron flips. The thicker the line, the more that neuron matters to the output.
+
+- **`epoch 0`:** all six lines cross in the middle of the chart. The biases start at zero, so every line passes through the center point; only the angles are random.
+- **`epoch 50` and `epoch 300`:** the lines spread out and rotate toward the dots.
+- **`epoch 4000`:** two neurons sit exactly on the two edges of the band, with strong output weights of opposite signs (+9.7 and −9.4): one says "the cactus is close enough", the other says "but not too close". The other four moved their lines out of the playing area (to distances above 2) and barely matter anymore.
+
+So the network only needed 2 of its 6 neurons, which matches what `N_HIDDEN = 2` shows in the exercises. The output layer combines the two lines into the band. **More neurons = more lines to combine = more complicated shapes.**
+
+You can watch these lines move in the replay (`--live`).
 
 ---
 
@@ -194,12 +207,52 @@ They are at the top of the script. They are not learned — **you** choose them.
 | `N_EXAMPLES` | 600 | With 20: 100% on training, but only ~91% on new data — the network "memorized" the examples (*overfitting*). |
 | `SEED` | 42 | Changes the initial weights and the data. Similar final results, different paths. |
 
+---
+
+## 8. The loss valley: learning rate and cosine schedule
+
+The 25 weights make a loss "terrain" with 25 dimensions, impossible to draw. To see gradient descent from above, [`loss_valley.py`](loss_valley.py) shrinks the problem to the simplest neuron there is: **no activation at all**, a pure linear regression with only two weights:
+
+```
+jump distance = w · speed + b
+```
+
+The task still comes from the game: the faster the game, the earlier you must jump. The script makes 200 noisy examples and walks downhill four times from the same starting point, changing only the learning rate.
+
+```bash
+python lessons/01-neuron-and-gradient/loss_valley.py
+```
+
+![loss valley](results/loss_valley.gif)
+
+Each point of the map is one possible line `(w, b)`; darker means smaller loss. The gold star is the bottom of the valley, the best line. After 60 steps:
+
+| Walk | Learning rate | What happens | Loss after 60 steps |
+|---|---|---|---|
+| gray | 0.05, fixed | Safe, but too slow: still far from the bottom | 0.069 |
+| green | 0.5, fixed | Goes down and settles at the bottom | 0.00097 |
+| red | 0.78, fixed | Overshoots the bottom, bounces from side to side, farther each time, and blows up | 4.5 |
+| purple | 0.78 → 0, cosine | Starts with the same "too big" rate and bounces, but the rate shrinks and it calms down at the bottom | 0.0011 |
+
+The bottom of the valley has a loss of 0.00095.
+
+Three things to notice:
+
+- **The valley is a long, narrow bowl.** Going across it is steep, along it is gentle. A big step overshoots across the steep side and bounces; that is the zigzag. Bigger networks can have valleys like this in many dimensions at once.
+- **The two phases of section 5 show up here too.** The fast descent is the first few steps, when the paths drop toward the valley; the fine-tuning is the long, slow crawl along the bottom.
+- **The cosine schedule** gets the best of both: big steps at the start, when the network is far from the bottom, and small steps at the end, when it is close. The learning rate follows half a cosine wave, from 0.78 down to 0 (bottom-right chart). Until about step 50 the purple path has a lower loss than the green one, and it ends practically tied with it. Big models, including LLMs, are usually trained with a schedule like this instead of a fixed rate.
+
+A neuron with an activation (like the ones in `train_from_scratch.py`) has a curvier valley than this perfect bowl, but the walk is the same: `weight = weight - learning_rate * gradient`, over and over.
+
+---
+
 ## Exercises
 
 1. Set `LEARNING_RATE = 20` and look at `02_loss.png`. Then try `0.01`. What happened in each case?
 2. Try `N_HIDDEN = 1` and then `2`. What is the minimum number of neurons to draw the band? Why? Look at `04_boundaries.png`.
 3. Set `N_EXAMPLES = 20`. Compare the accuracy on training with the accuracy on new data.
 4. Open the CSV and find the weight that changed the most. Which input is it connected to?
+5. In `loss_valley.py`, change the "too big" rate from 0.78 to 0.75. Does it still blow up? Then try 0.8. Somewhere around 0.76 is the edge between "bounces but settles" and "blows up".
 
 ---
 
@@ -211,5 +264,24 @@ An LLM is trained with **exactly** this cycle — forward, loss, gradient, step 
 - there are hundreds of billions of weights instead of 25;
 - the data is trillions of words instead of 600 dots;
 - they use smarter variations of gradient descent (like *Adam*), on thousands of GPUs.
+
+---
+
+## Beyond this lesson: cosine similarity
+
+> **Not used in this lesson.** This is here as an analogy, because "cosine" comes up a lot when people talk about LLMs, and it has nothing to do with the cosine schedule of section 8.
+
+A **vector** is just a list of numbers. Each hidden neuron in this lesson has one: its two input weights, `(weight of the distance, weight of the speed)`. That vector sets the direction of the neuron's line.
+
+**Cosine similarity** measures how much two vectors point the same way, ignoring their size: 1 = same direction, 0 = unrelated, −1 = opposite directions.
+
+In the trained network:
+
+- The two neurons on the edges of the band have vectors (−8.91, 3.07) and (−8.15, 1.97). Their cosine similarity is **0.996**: they point almost the same way, which is why the two edges of the band are almost parallel.
+- Another neuron, with tiny weights (−0.17, 0.08), also scores **0.995** against the first one. It points the same way but is 50 times weaker. Cosine similarity only looks at direction, not size.
+
+LLMs use the same tool on a much bigger scale. They turn each word or text into a vector with hundreds or thousands of numbers (an *embedding*). Texts with similar meaning end up pointing in similar directions, so "dog" and "puppy" have a high cosine similarity and "dog" and "spreadsheet" a low one. That is how search engines and assistants find text with a similar meaning, even when the words are different.
+
+---
 
 **Next lesson:** [the environment — the game the AI will play](../02-the-environment/README.md)

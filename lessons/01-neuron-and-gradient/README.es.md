@@ -10,7 +10,7 @@
 python lessons/01-neuron-and-gradient/train_from_scratch.py --live
 ```
 
-El script entrena la red (unos 5 segundos), guarda el valor de cada peso en cada época y después **reproduce el entrenamiento en una ventana, como un video**: lo que la red piensa, la pérdida bajando, cada uno de los 25 pesos ajustándose y el gradiente de cada peso en ese instante.
+El script entrena la red (unos 5 segundos), guarda el valor de cada peso en cada época y después **reproduce el entrenamiento en una ventana, como un video**: lo que la red piensa (con la línea recta de cada neurona oculta en morado), la pérdida bajando, cada uno de los 25 pesos ajustándose y el gradiente de cada peso en ese instante.
 
 | Tecla | Qué hace |
 |---|---|
@@ -76,6 +76,8 @@ salida = activación( peso₁·entrada₁ + peso₂·entrada₂ + ... + sesgo )
 | **Sesgo (bias)** | Un "empujón" fijo, desplaza el umbral de la neurona | `b1`, `b2` |
 | **Activación** | Una curva que dobla la suma. Sin ella, toda la red sería solo una línea recta | `tanh`, `sigmoid` |
 | **Forward** | Pasar las entradas por la red y obtener la predicción | `forward()` |
+
+La suma dentro de la activación, `peso₁·entrada₁ + peso₂·entrada₂ + sesgo`, es exactamente la fórmula de una **regresión lineal**. La sección 6 muestra qué significa eso en la práctica.
 
 Esta red tiene 2×6 + 6 + 6×1 + 1 = **25 números ajustables**. Entrenar = encontrar buenos valores para esos 25 números. (Un LLM grande tiene **cientos de miles de millones** de ellos — pero la idea es la misma.)
 
@@ -154,7 +156,7 @@ El título de la gráfica lo resume: "Background = what the network thinks (red 
 - **`epoch 300`:** ya encontró la franja, todavía borrosa.
 - **`epoch 4000`:** franja nítida, prácticamente igual a la regla verdadera.
 
-### ¿Por qué la forma aparece rápido y después "se detiene"?
+### Dos fases: descenso rápido, después ajuste fino
 
 En la repetición (`--live`) se ve que la franja surge en los primeros cientos de épocas y después casi no cambia. Son dos fases:
 
@@ -163,22 +165,33 @@ En la repetición (`--live`) se ve que la franja surge en los primeros cientos d
 
 La forma no se queda totalmente quieta: los pesos siguen creciendo despacio (panel de pesos), y eso hace que los bordes de la franja sean más **nítidos**. La red se está volviendo más *confiada*. Con la entropía cruzada, siempre se puede bajar la pérdida un poquito más apostando con más certeza, así que los pesos crecen sin parar, cada vez más despacio.
 
-**¿Tiene que ver con la regresión lineal?** Sí, y mucho. Cada neurona calcula `w₁·x₁ + w₂·x₂ + b`, exactamente la fórmula de la regresión lineal. Si le pones una sigmoide encima, se vuelve **regresión logística**: es la "neurona única" de la sección 6, que solo traza una línea recta. La red de esta lección son 6 de esas rectas (con `tanh`) combinadas por la capa de salida. Así es como dos bordes se convierten en una franja.
-
-**¿Y el coseno?** No aparece aquí. Las curvas en "S" son la `tanh` y la sigmoide, y la bajada de la pérdida parece un decaimiento, sin nada periódico. Las ondas solo aparecen si la tasa de aprendizaje es demasiado grande y la pérdida se queda rebotando (ejercicio 1). El coseno aparece en otras partes de la IA:
-
-- **Similitud coseno:** mide cuánto apuntan dos vectores hacia el mismo lado. Es como los LLMs y los buscadores comparan el "significado" de los textos (embeddings).
-- **Calendario coseno (*cosine schedule*):** en lugar de una tasa de aprendizaje fija como aquí, la tasa empieza alta y va bajando siguiendo media onda de coseno. Es común en el entrenamiento de LLMs: pasos grandes al principio, pasos pequeños en el ajuste fino, las mismas dos fases que ves en la repetición.
+La sección 8 muestra estas dos fases vistas desde arriba, en un mapa de la pérdida.
 
 ---
 
-## 6. ¿Por qué necesitamos una capa oculta?
+## 6. Cada neurona es una regresión lineal
+
+Cada neurona calcula `w₁·distancia + w₂·velocidad + b`, la fórmula de una **regresión lineal**. Donde esa suma es cero, la neurona cambia de "no" a "sí", y esos puntos forman una **línea recta** en la gráfica. La activación (`tanh` o `sigmoid`) solo dobla la respuesta cerca de la recta; no cambia dónde está la recta.
+
+### Una neurona sola: una recta no alcanza
 
 ![neurona única](results/05_single_neuron.png)
 
-Una **neurona sola** solo puede trazar **una línea recta**. La franja necesita dos bordes, así que se rinde y aprende "nunca saltes" — lo que acierta el 77% solo porque la mayoría de los ejemplos son "no saltar". Esta es una trampa clásica: **una exactitud alta no significa que aprendió**.
+Una neurona con sigmoide y sin capa oculta es una **regresión logística**: solo puede trazar **una línea recta**. La franja necesita dos bordes, así que se rinde y aprende "nunca saltes" — lo que acierta el 77% solo porque la mayoría de los ejemplos son "no saltar". Esta es una trampa clásica: **una exactitud alta no significa que aprendió**.
 
-Con 6 neuronas ocultas, cada una traza una recta, y la capa de salida combina esas rectas en una forma más compleja. **Profundidad = capacidad de representar patrones complicados.**
+### Seis neuronas: seis rectas, combinadas en una franja
+
+![rectas de las neuronas ocultas](results/06_hidden_lines.png)
+
+Cada recta morada es donde cambia una neurona oculta. Cuanto más gruesa la recta, más importa esa neurona para la salida.
+
+- **`epoch 0` (época 0):** las seis rectas se cruzan en el medio de la gráfica. Los sesgos empiezan en cero, así que todas las rectas pasan por el punto central; solo los ángulos son aleatorios.
+- **`epoch 50` y `epoch 300`:** las rectas se separan y giran hacia los puntos.
+- **`epoch 4000`:** dos neuronas quedan exactamente sobre los dos bordes de la franja, con pesos de salida fuertes y de signos opuestos (+9.7 y −9.4): una dice "el cactus está lo bastante cerca", la otra dice "pero no demasiado cerca". Las otras cuatro movieron sus rectas fuera del área de juego (a distancias mayores que 2) y ya casi no importan.
+
+Es decir, la red solo necesitó 2 de sus 6 neuronas, lo que coincide con lo que `N_HIDDEN = 2` muestra en los ejercicios. La capa de salida combina las dos rectas en la franja. **Más neuronas = más rectas para combinar = formas más complicadas.**
+
+Puedes ver estas rectas moverse en la repetición (`--live`).
 
 ---
 
@@ -194,12 +207,52 @@ Están al principio del script. No se aprenden — **tú** los eliges.
 | `N_EXAMPLES` | 600 | Con 20: 100% en el entrenamiento, pero solo ~91% con datos nuevos — la red "memorizó" los ejemplos (*overfitting*). |
 | `SEED` | 42 | Cambia los pesos iniciales y los datos. Resultados finales parecidos, caminos diferentes. |
 
+---
+
+## 8. El valle de la pérdida: tasa de aprendizaje y programación coseno
+
+Los 25 pesos forman un "terreno" de pérdida con 25 dimensiones, imposible de dibujar. Para ver el descenso de gradiente desde arriba, [`loss_valley.py`](loss_valley.py) reduce el problema a la neurona más simple que existe: **sin ninguna activación**, una regresión lineal pura con solo dos pesos:
+
+```
+jump distance = w · speed + b
+```
+
+(distancia del salto = w · velocidad + b.) La tarea sigue viniendo del juego: cuanto más rápido va el juego, antes hay que saltar. El script genera 200 ejemplos con ruido y baja la colina cuatro veces desde el mismo punto de partida, cambiando solo la tasa de aprendizaje.
+
+```bash
+python lessons/01-neuron-and-gradient/loss_valley.py
+```
+
+![valle de la pérdida](results/loss_valley.gif)
+
+Cada punto del mapa es una recta posible `(w, b)`; más oscuro significa menor pérdida. La estrella dorada es el fondo del valle, la mejor recta. Después de 60 pasos:
+
+| Recorrido | Tasa de aprendizaje | Qué pasa | Pérdida después de 60 pasos |
+|---|---|---|---|
+| gris | 0.05, fija | Seguro, pero demasiado lento: todavía lejos del fondo | 0.069 |
+| verde | 0.5, fija | Baja y se asienta en el fondo | 0.00097 |
+| rojo | 0.78, fija | Se pasa del fondo, rebota de un lado a otro, cada vez más lejos, y explota | 4.5 |
+| morado | 0.78 → 0, coseno | Empieza con la misma tasa "demasiado grande" y rebota, pero la tasa se reduce y se calma en el fondo | 0.0011 |
+
+El fondo del valle tiene una pérdida de 0.00095.
+
+Tres cosas para notar:
+
+- **El valle es un tazón largo y angosto.** Cruzarlo es empinado, a lo largo es suave. Un paso grande se pasa en el lado empinado y rebota; ese es el zigzag. Las redes más grandes pueden tener valles así en muchas dimensiones a la vez.
+- **Las dos fases de la sección 5 aparecen aquí también.** El descenso rápido son los primeros pasos, cuando los caminos caen hacia el valle; el ajuste fino es el avance largo y lento por el fondo.
+- **La programación coseno** (*cosine schedule*) toma lo mejor de los dos: pasos grandes al principio, cuando la red está lejos del fondo, y pasos pequeños al final, cuando está cerca. La tasa de aprendizaje sigue media onda de coseno, de 0.78 a 0 (gráfica de abajo a la derecha). Hasta más o menos el paso 50 el camino morado tiene menor pérdida que el verde, y termina prácticamente empatado con él. Los modelos grandes, incluidos los LLM, suelen entrenarse con una programación así en lugar de una tasa fija.
+
+Una neurona con activación (como las de `train_from_scratch.py`) tiene un valle más curvo que este tazón perfecto, pero el recorrido es el mismo: `weight = weight - learning_rate * gradient`, una y otra vez.
+
+---
+
 ## Ejercicios
 
 1. Pon `LEARNING_RATE = 20` y mira el `02_loss.png`. Después prueba `0.01`. ¿Qué pasó en cada caso?
 2. Prueba `N_HIDDEN = 1` y después `2`. ¿Cuál es el mínimo de neuronas para dibujar la franja? ¿Por qué? Mira el `04_boundaries.png`.
 3. Pon `N_EXAMPLES = 20`. Compara la exactitud en el entrenamiento con la exactitud con datos nuevos.
 4. Abre el CSV y encuentra el peso que más cambió. ¿A qué entrada está conectado?
+5. En `loss_valley.py`, cambia la tasa "demasiado grande" de 0.78 a 0.75. ¿Todavía explota? Después prueba 0.8. Alrededor de 0.76 está el límite entre "rebota pero se asienta" y "explota".
 
 ---
 
@@ -211,5 +264,24 @@ Un LLM se entrena **exactamente** con este ciclo — forward, pérdida, gradient
 - son cientos de miles de millones de pesos en lugar de 25;
 - los datos son billones de palabras en lugar de 600 puntos;
 - usan variantes más ingeniosas del descenso de gradiente (como *Adam*), en miles de GPUs.
+
+---
+
+## Más allá de esta lección: similitud coseno
+
+> **No se usa en esta lección.** Está aquí como analogía, porque "coseno" aparece mucho cuando se habla de LLM, y no tiene nada que ver con la programación coseno de la sección 8.
+
+Un **vector** es solo una lista de números. Cada neurona oculta de esta lección tiene uno: sus dos pesos de entrada, `(peso de la distancia, peso de la velocidad)`. Ese vector define la dirección de la recta de la neurona.
+
+La **similitud coseno** mide cuánto apuntan dos vectores hacia el mismo lado, sin importar su tamaño: 1 = misma dirección, 0 = sin relación, −1 = direcciones opuestas.
+
+En la red entrenada:
+
+- Las dos neuronas de los bordes de la franja tienen los vectores (−8.91, 3.07) y (−8.15, 1.97). Su similitud coseno es **0.996**: apuntan casi hacia el mismo lado, y por eso los dos bordes de la franja son casi paralelos.
+- Otra neurona, con pesos diminutos (−0.17, 0.08), también obtiene **0.995** frente a la primera. Apunta hacia el mismo lado, pero es 50 veces más débil. La similitud coseno solo mira la dirección, no el tamaño.
+
+Los LLM usan la misma herramienta a una escala mucho mayor. Convierten cada palabra o texto en un vector con cientos o miles de números (un *embedding*). Los textos con significado parecido terminan apuntando en direcciones parecidas, así que "perro" y "cachorro" tienen una similitud coseno alta, y "perro" y "hoja de cálculo", una baja. Así es como los buscadores y los asistentes encuentran textos con un significado parecido, incluso cuando las palabras son diferentes.
+
+---
 
 **Próxima lección:** [el entorno — el juego que la IA va a jugar](../02-the-environment/README.es.md)
