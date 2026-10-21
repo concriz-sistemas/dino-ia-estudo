@@ -101,7 +101,7 @@ def main():
                     color="#c92a2a" if lab == "doesn't fit" else "k")
         ax.set_yticks(y, [d[0] for d in DEVICES], fontsize=9)
         ax.set_xlim(0, max(values) * 1.3)
-        ax.set_title(f"{name} ({size:.1f} GB): at most how many tokens per second", fontsize=10)
+        ax.set_title(f"{name} ({size:.1f} GB): tokens per second, at most", fontsize=10)
         ax.set_xlabel("memory bandwidth ÷ model size")
         ax.grid(alpha=0.3, axis="x")
     fig.suptitle("Writing one token means reading all the weights once: memory speed sets the ceiling", fontsize=11)
