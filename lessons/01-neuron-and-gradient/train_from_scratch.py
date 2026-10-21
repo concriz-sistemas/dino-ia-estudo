@@ -31,6 +31,7 @@ Outputs (in results/):
     03_weights.png        — how each weight changed over time
     04_boundaries.png     — what the network "thinks" at different moments of training
     05_single_neuron.png  — why we need a hidden layer
+    06_hidden_lines.png   — the straight line drawn by each hidden neuron
 """
 import csv
 import os
@@ -277,6 +278,51 @@ def plot_weights(hist, names):
     plt.close(fig)
 
 
+def hidden_lines(p):
+    """
+    Each hidden neuron computes w1·distance + w2·speed + b — the formula of a
+    linear regression. Where that sum is zero, the neuron "flips" from negative
+    to positive. Those points form a STRAIGHT LINE. Returns one line per neuron,
+    in the chart's coordinates (0..1), plus how much each neuron matters to the output.
+    """
+    d = np.linspace(-0.5, 1.5, 2)
+    lines = []
+    for j in range(p["W1"].shape[1]):
+        w_dist, w_speed, b = p["W1"][0, j], p["W1"][1, j], p["b1"][0, j]
+        # The inputs are normalized (x * 2 - 1), so we solve the line in normalized units
+        if abs(w_speed) < 1e-9:
+            xs, ys = np.full(2, (-b / w_dist + 1) / 2), np.array([-0.5, 1.5])
+        else:
+            xs, ys = d, ((-b - w_dist * (d * 2 - 1)) / w_speed + 1) / 2
+        lines.append((xs, ys))
+    importance = np.abs(p["W2"][:, 0])
+    return lines, importance / importance.max()
+
+
+def plot_hidden_lines(snapshots, X, y):
+    epochs = sorted(snapshots)
+    fig, axs = plt.subplots(1, len(epochs), figsize=(4.2 * len(epochs), 4))
+    for ax, ep in zip(axs, epochs):
+        D, S, prob = prediction_grid(snapshots[ep])
+        ax.contourf(D, S, prob, levels=20, cmap="RdBu_r", vmin=0, vmax=1, alpha=0.35)
+        ax.scatter(X[y[:, 0] == 1, 0], X[y[:, 0] == 1, 1], s=4, c="k", alpha=0.3)
+        lines, importance = hidden_lines(snapshots[ep])
+        for j, ((xs, ys), imp) in enumerate(zip(lines, importance)):
+            ax.plot(xs, ys, c="#5f3dc4", lw=0.8 + 3 * imp, alpha=0.9,
+                    label="one line per hidden neuron" if j == 0 else None)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.set_title(f"epoch {ep}")
+        ax.set_xlabel("distance")
+    axs[0].set_ylabel("speed")
+    axs[-1].legend(loc="lower right", fontsize=8)
+    fig.suptitle("Each hidden neuron draws one straight line (thicker = matters more to the output). "
+                 "The output layer combines them into the band.")
+    fig.tight_layout()
+    fig.savefig(os.path.join(OUTPUT, "06_hidden_lines.png"), dpi=110)
+    plt.close(fig)
+
+
 def plot_boundaries(snapshots, X, y):
     epochs = sorted(snapshots)
     fig, axs = plt.subplots(1, len(epochs), figsize=(4.2 * len(epochs), 4))
@@ -358,6 +404,12 @@ class Replay:
         self.image = self.ax_net.imshow(prob, origin="lower", extent=(0, 1, 0, 1), aspect="auto",
                                         cmap="RdBu_r", vmin=0, vmax=1, alpha=0.85)
         self.contour = None
+        # The straight line of each hidden neuron, redrawn every frame
+        self.neuron_lines = [self.ax_net.plot([], [], c="#5f3dc4", alpha=0.9,
+                                              label="hidden neuron lines" if j == 0 else None)[0]
+                             for j in range(template["W1"].shape[1])]
+        self.ax_net.set_xlim(0, 1)
+        self.ax_net.set_ylim(0, 1)
         self.ax_net.scatter(X[y[:, 0] == 1, 0], X[y[:, 0] == 1, 1], s=4, c="k", alpha=0.4, label="answer key: 'jump' examples")
         self.ax_net.legend(loc="lower right", fontsize=8)
         self.ax_net.set_xlabel("distance")
@@ -406,6 +458,11 @@ class Replay:
             warnings.simplefilter("ignore")  # no boundary yet (all blue) raises a warning
             self.contour = self.ax_net.contour(self.D, self.S, prob, levels=[0.5],
                                                colors="k", linewidths=1.5)
+
+        lines, importance = hidden_lines(p)
+        for line, (xs, ys), imp in zip(self.neuron_lines, lines, importance):
+            line.set_data(xs, ys)
+            line.set_linewidth(0.8 + 3 * imp)
 
         upto = slice(0, epoch + 1)
         self.loss_line.set_data(h[upto, 0], h[upto, 1])
@@ -502,6 +559,7 @@ def main():
     plot_loss(hist)
     plot_weights(hist, names)
     plot_boundaries(snapshots, X, y)
+    plot_hidden_lines(snapshots, X, y)
     single_acc = plot_single_neuron(X, y, Xn)
 
     print("\n=== Results ===")
