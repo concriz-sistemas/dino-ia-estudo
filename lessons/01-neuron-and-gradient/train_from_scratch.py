@@ -1,36 +1,36 @@
 """
-Lição 1 — Uma rede neural do zero, só com numpy.
+Lesson 1 — A neural network from scratch, using only numpy.
 
-Objetivo: ver com os próprios olhos o que é "treinar com gradiente".
-Nada de bibliotecas de IA aqui: cada conta está escrita à mão.
+Goal: see with your own eyes what "training with gradients" means.
+No AI libraries here: every calculation is written by hand.
 
-O problema (inspirado no dino):
-    Entradas: distância até o cacto (0..1) e velocidade do jogo (0..1)
-    Saída:    probabilidade de "agora é hora de pular"
+The problem (inspired by the dino):
+    Inputs: distance to the cactus (0..1) and game speed (0..1)
+    Output: probability that "now is the time to jump"
 
-    Regra que queremos que a rede DESCUBRA sozinha:
-    é hora de pular se o cacto está numa FAIXA de distância —
-    nem perto demais (já era), nem longe demais (cedo demais).
-    E quanto mais rápido o jogo, mais longe essa faixa fica.
+    The rule we want the network to DISCOVER on its own:
+    it's time to jump if the cactus is within a BAND of distances —
+    not too close (too late), not too far (too early).
+    And the faster the game, the farther away that band is.
 
-Rode a partir da raiz do repositório:
-    # treina e salva os gráficos
-    python licoes/01-neuronio-e-gradiente/treinar_do_zero.py
-    # treina e depois toca o treino numa janela, como um vídeo
-    python licoes/01-neuronio-e-gradiente/treinar_do_zero.py --ao-vivo
-    # grava o mesmo replay em resultados/treino.gif
-    python licoes/01-neuronio-e-gradiente/treinar_do_zero.py --gif
+Run from the repository root:
+    # train and save the charts
+    python lessons/01-neuron-and-gradient/train_from_scratch.py
+    # train, then play the training back in a window, like a video
+    python lessons/01-neuron-and-gradient/train_from_scratch.py --live
+    # record the same replay to results/training.gif
+    python lessons/01-neuron-and-gradient/train_from_scratch.py --gif
 
-No replay:  ESPAÇO = pausar/continuar,  ← → = voltar/avançar uma época,
-            ↑ ↓ = mais rápido/mais devagar,  R = recomeçar
+In the replay:  SPACE = pause/resume,  ← → = back/forward one epoch,
+                ↑ ↓ = faster/slower,  R = restart
 
-Saídas (em resultados/):
-    historico_pesos.csv   — todos os pesos, a perda e a acurácia em cada época
-    01_dados.png          — os exemplos de treino
-    02_perda.png          — a curva de aprendizado
-    03_pesos.png          — como cada peso foi mudando
-    04_fronteiras.png     — o que a rede "pensa" em diferentes momentos do treino
-    05_neuronio_unico.png — por que precisamos de uma camada oculta
+Outputs (in results/):
+    weight_history.csv    — every weight, the loss and the accuracy at each epoch
+    01_data.png           — the training examples
+    02_loss.png           — the learning curve
+    03_weights.png        — how each weight changed over time
+    04_boundaries.png     — what the network "thinks" at different moments of training
+    05_single_neuron.png  — why we need a hidden layer
 """
 import csv
 import os
@@ -40,485 +40,485 @@ import warnings
 import numpy as np
 import matplotlib
 
-AO_VIVO = "--ao-vivo" in sys.argv
+LIVE = "--live" in sys.argv
 GIF = "--gif" in sys.argv
-if not AO_VIVO:
-    matplotlib.use("Agg")  # gera PNGs sem precisar de janela
+if not LIVE:
+    matplotlib.use("Agg")  # makes PNGs without needing a window
 import matplotlib.pyplot as plt
 
-PASTA = os.path.dirname(os.path.abspath(__file__))
-SAIDA = os.path.join(PASTA, "resultados")
-os.makedirs(SAIDA, exist_ok=True)
+FOLDER = os.path.dirname(os.path.abspath(__file__))
+OUTPUT = os.path.join(FOLDER, "results")
+os.makedirs(OUTPUT, exist_ok=True)
 
 # ---------------------------------------------------------------------------
-# HIPERPARÂMETROS — as "regulagens" do treino. Mude e rode de novo!
+# HYPERPARAMETERS — the "knobs" of training. Change them and run again!
 # ---------------------------------------------------------------------------
-SEMENTE = 42            # para o resultado ser reproduzível
-N_EXEMPLOS = 600        # quantos exemplos de treino
-N_OCULTOS = 6           # neurônios na camada oculta
-TAXA_APRENDIZADO = 0.5  # tamanho do passo na direção contrária ao gradiente
-EPOCAS = 4000           # quantas vezes a rede vê todos os exemplos
+SEED = 42               # so the result is reproducible
+N_EXAMPLES = 600        # how many training examples
+N_HIDDEN = 6            # neurons in the hidden layer
+LEARNING_RATE = 0.5     # size of the step in the direction opposite to the gradient
+EPOCHS = 4000           # how many times the network sees all the examples
 
-rng = np.random.default_rng(SEMENTE)
+rng = np.random.default_rng(SEED)
 
 
 # ---------------------------------------------------------------------------
-# 1) DADOS
+# 1) DATA
 # ---------------------------------------------------------------------------
-def regra_verdadeira(dist, vel):
-    """A 'resposta certa'. A rede nunca vê esta função — só os exemplos."""
-    inicio = 0.10 + 0.25 * vel
-    fim = 0.30 + 0.35 * vel
-    return ((dist > inicio) & (dist < fim)).astype(float)
+def true_rule(dist, speed):
+    """The 'right answer'. The network never sees this function — only the examples."""
+    start = 0.10 + 0.25 * speed
+    end = 0.30 + 0.35 * speed
+    return ((dist > start) & (dist < end)).astype(float)
 
 
-def gerar_dados(n):
+def make_data(n):
     dist = rng.uniform(0, 1, n)
-    vel = rng.uniform(0, 1, n)
-    X = np.column_stack([dist, vel])
-    y = regra_verdadeira(dist, vel).reshape(-1, 1)
+    speed = rng.uniform(0, 1, n)
+    X = np.column_stack([dist, speed])
+    y = true_rule(dist, speed).reshape(-1, 1)
     return X, y
 
 
-def normalizar(X):
-    """Leva 0..1 para -1..1. Redes treinam melhor com entradas centradas no zero."""
+def normalize(X):
+    """Maps 0..1 to -1..1. Networks train better with inputs centered on zero."""
     return X * 2 - 1
 
 
 # ---------------------------------------------------------------------------
-# 2) A REDE: entrada(2) -> oculta(N, tanh) -> saída(1, sigmoide)
+# 2) THE NETWORK: input(2) -> hidden(N, tanh) -> output(1, sigmoid)
 # ---------------------------------------------------------------------------
-def sigmoide(z):
+def sigmoid(z):
     return 1 / (1 + np.exp(-z))
 
 
-def iniciar_pesos(n_entradas, n_ocultos):
-    # Pesos pequenos e aleatórios. Se começassem todos iguais (ex.: zero),
-    # todos os neurônios ocultos aprenderiam exatamente a mesma coisa.
+def init_weights(n_inputs, n_hidden):
+    # Small, random weights. If they all started out equal (e.g. zero),
+    # every hidden neuron would learn exactly the same thing.
     return {
-        "W1": rng.normal(0, 1, (n_entradas, n_ocultos)),
-        "b1": np.zeros((1, n_ocultos)),
-        "W2": rng.normal(0, 1, (n_ocultos, 1)),
+        "W1": rng.normal(0, 1, (n_inputs, n_hidden)),
+        "b1": np.zeros((1, n_hidden)),
+        "W2": rng.normal(0, 1, (n_hidden, 1)),
         "b2": np.zeros((1, 1)),
     }
 
 
 def forward(p, X):
-    """Passagem para frente: das entradas até a previsão."""
-    z1 = X @ p["W1"] + p["b1"]     # soma ponderada na camada oculta
-    h = np.tanh(z1)                # ativação (dá a não-linearidade)
-    z2 = h @ p["W2"] + p["b2"]     # soma ponderada na saída
-    y_hat = sigmoide(z2)           # vira probabilidade 0..1
+    """Forward pass: from the inputs all the way to the prediction."""
+    z1 = X @ p["W1"] + p["b1"]     # weighted sum in the hidden layer
+    h = np.tanh(z1)                # activation (adds the non-linearity)
+    z2 = h @ p["W2"] + p["b2"]     # weighted sum in the output
+    y_hat = sigmoid(z2)            # becomes a probability 0..1
     return y_hat, h
 
 
-def perda(y_hat, y):
-    """Entropia cruzada binária: castiga muito quem erra com convicção."""
+def loss(y_hat, y):
+    """Binary cross-entropy: punishes hard whoever is wrong with confidence."""
     eps = 1e-9
     return float(-np.mean(y * np.log(y_hat + eps) + (1 - y) * np.log(1 - y_hat + eps)))
 
 
 def backward(p, X, y, y_hat, h):
     """
-    Retropropagação (backpropagation): regra da cadeia, da saída para a entrada.
-    Responde: 'se eu mexer um pouquinho neste peso, quanto a perda muda?'
-    Isso é o GRADIENTE.
+    Backpropagation: the chain rule, from the output back to the input.
+    It answers: 'if I nudge this weight a tiny bit, how much does the loss change?'
+    That is the GRADIENT.
     """
     n = X.shape[0]
-    dz2 = (y_hat - y) / n                  # derivada da perda em relação a z2
+    dz2 = (y_hat - y) / n                  # derivative of the loss with respect to z2
     dW2 = h.T @ dz2
     db2 = dz2.sum(axis=0, keepdims=True)
-    dh = dz2 @ p["W2"].T                   # o erro "volta" para a camada oculta
-    dz1 = dh * (1 - h ** 2)                # derivada da tanh
+    dh = dz2 @ p["W2"].T                   # the error "flows back" to the hidden layer
+    dz1 = dh * (1 - h ** 2)                # derivative of tanh
     dW1 = X.T @ dz1
     db1 = dz1.sum(axis=0, keepdims=True)
     return {"W1": dW1, "b1": db1, "W2": dW2, "b2": db2}
 
 
-def nomes_dos_pesos(p):
-    nomes = []
+def weight_names(p):
+    names = []
     for k in ["W1", "b1", "W2", "b2"]:
         for idx in np.ndindex(p[k].shape):
-            nomes.append(f"{k}[{','.join(map(str, idx))}]")
-    return nomes
+            names.append(f"{k}[{','.join(map(str, idx))}]")
+    return names
 
 
-def achatar(p):
+def flatten(p):
     return np.concatenate([p[k].ravel() for k in ["W1", "b1", "W2", "b2"]])
 
 
 # ---------------------------------------------------------------------------
-# 3) CONFERINDO O GRADIENTE (gradient check)
+# 3) CHECKING THE GRADIENT (gradient check)
 # ---------------------------------------------------------------------------
-def checar_gradiente(p, X, y):
+def check_gradient(p, X, y):
     """
-    Compara o gradiente da fórmula (backward) com uma estimativa 'na força bruta':
-    mexe o peso +eps e -eps e mede a diferença na perda. Se baterem, a
-    retropropagação está certa. É assim que se depura backprop na vida real.
+    Compares the gradient from the formula (backward) with a 'brute force' estimate:
+    nudge the weight by +eps and -eps and measure the difference in the loss. If they
+    match, backpropagation is correct. This is how people debug backprop in real life.
     """
     y_hat, h = forward(p, X)
     g = backward(p, X, y, y_hat, h)
     eps = 1e-5
-    print("\n[Conferindo o gradiente]  fórmula  vs  força bruta")
+    print("\n[Checking the gradient]  formula  vs  brute force")
     for k, idx in [("W1", (0, 0)), ("W1", (1, 2)), ("W2", (3, 0)), ("b2", (0, 0))]:
         original = p[k][idx]
         p[k][idx] = original + eps
-        l_mais = perda(forward(p, X)[0], y)
+        loss_plus = loss(forward(p, X)[0], y)
         p[k][idx] = original - eps
-        l_menos = perda(forward(p, X)[0], y)
+        loss_minus = loss(forward(p, X)[0], y)
         p[k][idx] = original
-        numerico = (l_mais - l_menos) / (2 * eps)
-        print(f"  {k}{list(idx)}:  {g[k][idx]:+.6f}  vs  {numerico:+.6f}")
+        numerical = (loss_plus - loss_minus) / (2 * eps)
+        print(f"  {k}{list(idx)}:  {g[k][idx]:+.6f}  vs  {numerical:+.6f}")
 
 
 # ---------------------------------------------------------------------------
-# 4) TREINO
+# 4) TRAINING
 # ---------------------------------------------------------------------------
-def treinar(X, y, n_ocultos, epocas, taxa, registrar=True, explicar=True):
-    p = iniciar_pesos(X.shape[1], n_ocultos)
-    historico = []
-    fotos = {}  # cópias dos pesos em alguns momentos, para desenhar depois
-    momentos = {0, 50, 300, epocas}
+def train(X, y, n_hidden, epochs, rate, record=True, explain=True):
+    p = init_weights(X.shape[1], n_hidden)
+    history = []
+    snapshots = {}  # copies of the weights at a few moments, to draw later
+    moments = {0, 50, 300, epochs}
 
-    for epoca in range(epocas + 1):
+    for epoch in range(epochs + 1):
         y_hat, h = forward(p, X)
-        L = perda(y_hat, y)
+        L = loss(y_hat, y)
         acc = float(np.mean((y_hat > 0.5) == y))
         g = backward(p, X, y, y_hat, h)
-        norma_grad = float(np.sqrt(sum((g[k] ** 2).sum() for k in g)))
+        grad_norm = float(np.sqrt(sum((g[k] ** 2).sum() for k in g)))
 
-        if registrar:
-            historico.append([epoca, L, acc, norma_grad] + achatar(p).tolist())
-        if epoca in momentos:
-            fotos[epoca] = {k: v.copy() for k, v in p.items()}
+        if record:
+            history.append([epoch, L, acc, grad_norm] + flatten(p).tolist())
+        if epoch in moments:
+            snapshots[epoch] = {k: v.copy() for k, v in p.items()}
 
-        if explicar and epoca < 3:
+        if explain and epoch < 3:
             w, gw = p["W2"][0, 0], g["W2"][0, 0]
-            print(f"\nÉpoca {epoca}: perda={L:.4f}  acurácia={acc:.0%}")
-            print(f"  exemplo com um peso, W2[0,0]:")
-            print(f"    valor atual = {w:+.5f}")
-            print(f"    gradiente   = {gw:+.5f}   (sinal + => aumentar o peso aumentaria a perda)")
-            print(f"    novo valor  = {w:+.5f} - {taxa} × {gw:+.5f} = {w - taxa * gw:+.5f}")
-        elif explicar and epoca % 500 == 0:
-            print(f"Época {epoca:5d}: perda={L:.4f}  acurácia={acc:.1%}  |gradiente|={norma_grad:.4f}")
+            print(f"\nEpoch {epoch}: loss={L:.4f}  accuracy={acc:.0%}")
+            print(f"  example with one weight, W2[0,0]:")
+            print(f"    current value = {w:+.5f}")
+            print(f"    gradient      = {gw:+.5f}   (+ sign => increasing the weight would increase the loss)")
+            print(f"    new value     = {w:+.5f} - {rate} × {gw:+.5f} = {w - rate * gw:+.5f}")
+        elif explain and epoch % 500 == 0:
+            print(f"Epoch {epoch:5d}: loss={L:.4f}  accuracy={acc:.1%}  |gradient|={grad_norm:.4f}")
 
-        if epoca == epocas:
+        if epoch == epochs:
             break
-        # O PASSO DE DESCIDA DE GRADIENTE: andar um pouco "morro abaixo"
+        # THE GRADIENT DESCENT STEP: walk a little bit "downhill"
         for k in p:
-            p[k] -= taxa * g[k]
+            p[k] -= rate * g[k]
 
-    return p, historico, fotos
+    return p, history, snapshots
 
 
 # ---------------------------------------------------------------------------
-# 5) GRÁFICOS
+# 5) CHARTS
 # ---------------------------------------------------------------------------
-def grade_de_previsao(p, resolucao=200):
-    d = np.linspace(0, 1, resolucao)
-    v = np.linspace(0, 1, resolucao)
-    D, V = np.meshgrid(d, v)
-    Xg = normalizar(np.column_stack([D.ravel(), V.ravel()]))
+def prediction_grid(p, resolution=200):
+    d = np.linspace(0, 1, resolution)
+    s = np.linspace(0, 1, resolution)
+    D, S = np.meshgrid(d, s)
+    Xg = normalize(np.column_stack([D.ravel(), S.ravel()]))
     prob = forward(p, Xg)[0].reshape(D.shape)
-    return D, V, prob
+    return D, S, prob
 
 
-def plot_dados(X, y):
+def plot_data(X, y):
     fig, ax = plt.subplots(figsize=(6, 5))
-    ax.scatter(X[y[:, 0] == 0, 0], X[y[:, 0] == 0, 1], s=10, c="#9aa5b1", label="não pular")
-    ax.scatter(X[y[:, 0] == 1, 0], X[y[:, 0] == 1, 1], s=10, c="#e8590c", label="pular")
-    ax.set_xlabel("distância até o cacto")
-    ax.set_ylabel("velocidade do jogo")
-    ax.set_title("Exemplos de treino: quando é hora de pular?")
+    ax.scatter(X[y[:, 0] == 0, 0], X[y[:, 0] == 0, 1], s=10, c="#9aa5b1", label="don't jump")
+    ax.scatter(X[y[:, 0] == 1, 0], X[y[:, 0] == 1, 1], s=10, c="#e8590c", label="jump")
+    ax.set_xlabel("distance to the cactus")
+    ax.set_ylabel("game speed")
+    ax.set_title("Training examples: when is it time to jump?")
     ax.legend(loc="upper right")
     fig.tight_layout()
-    fig.savefig(os.path.join(SAIDA, "01_dados.png"), dpi=110)
+    fig.savefig(os.path.join(OUTPUT, "01_data.png"), dpi=110)
     plt.close(fig)
 
 
-def plot_perda(hist):
+def plot_loss(hist):
     h = np.array(hist)
     fig, axs = plt.subplots(1, 3, figsize=(14, 4))
     axs[0].plot(h[:, 0], h[:, 1], c="#1c7ed6")
-    axs[0].set_title("Perda (erro) — quanto menor, melhor")
-    axs[0].set_xlabel("época")
+    axs[0].set_title("Loss (error) — lower is better")
+    axs[0].set_xlabel("epoch")
     axs[1].plot(h[:, 0], h[:, 2] * 100, c="#2f9e44")
-    axs[1].set_title("Acurácia (%)")
-    axs[1].set_xlabel("época")
+    axs[1].set_title("Accuracy (%)")
+    axs[1].set_xlabel("epoch")
     axs[1].set_ylim(0, 100)
     axs[2].plot(h[:, 0], h[:, 3], c="#ae3ec9")
     axs[2].set_yscale("log")
-    axs[2].set_title("Tamanho do gradiente (escala log)")
-    axs[2].set_xlabel("época")
+    axs[2].set_title("Size of the gradient (log scale)")
+    axs[2].set_xlabel("epoch")
     for ax in axs:
         ax.grid(alpha=0.3)
     fig.tight_layout()
-    fig.savefig(os.path.join(SAIDA, "02_perda.png"), dpi=110)
+    fig.savefig(os.path.join(OUTPUT, "02_loss.png"), dpi=110)
     plt.close(fig)
 
 
-def plot_pesos(hist, nomes):
+def plot_weights(hist, names):
     h = np.array(hist)
-    pesos = h[:, 4:]
+    weights = h[:, 4:]
     fig, axs = plt.subplots(1, 2, figsize=(14, 4.5))
-    for i, nome in enumerate(nomes):
-        ax = axs[0] if nome.startswith(("W1", "b1")) else axs[1]
-        ax.plot(h[:, 0], pesos[:, i], lw=1.2, label=nome)
-    axs[0].set_title("Camada oculta (W1 e b1)")
-    axs[1].set_title("Camada de saída (W2 e b2)")
+    for i, name in enumerate(names):
+        ax = axs[0] if name.startswith(("W1", "b1")) else axs[1]
+        ax.plot(h[:, 0], weights[:, i], lw=1.2, label=name)
+    axs[0].set_title("Hidden layer (W1 and b1)")
+    axs[1].set_title("Output layer (W2 and b2)")
     for ax in axs:
-        ax.set_xlabel("época")
-        ax.set_ylabel("valor do peso")
+        ax.set_xlabel("epoch")
+        ax.set_ylabel("weight value")
         ax.grid(alpha=0.3)
         ax.legend(fontsize=7, ncol=2)
-    fig.suptitle("Cada linha é um peso. Repare: mudam rápido no começo e depois se acomodam.")
+    fig.suptitle("Each line is one weight. Notice: they change fast at first, then settle down.")
     fig.tight_layout()
-    fig.savefig(os.path.join(SAIDA, "03_pesos.png"), dpi=110)
+    fig.savefig(os.path.join(OUTPUT, "03_weights.png"), dpi=110)
     plt.close(fig)
 
 
-def plot_fronteiras(fotos, X, y):
-    epocas = sorted(fotos)
-    fig, axs = plt.subplots(1, len(epocas), figsize=(4.2 * len(epocas), 4))
-    for ax, ep in zip(axs, epocas):
-        D, V, prob = grade_de_previsao(fotos[ep])
-        ax.contourf(D, V, prob, levels=20, cmap="RdBu_r", vmin=0, vmax=1, alpha=0.8)
-        ax.contour(D, V, prob, levels=[0.5], colors="k", linewidths=1.5)
-        ax.scatter(X[y[:, 0] == 1, 0], X[y[:, 0] == 1, 1], s=4, c="k", alpha=0.4, label="gabarito: exemplos de 'pular'")
-        ax.set_title(f"época {ep}")
-        ax.set_xlabel("distância")
-    axs[0].set_ylabel("velocidade")
+def plot_boundaries(snapshots, X, y):
+    epochs = sorted(snapshots)
+    fig, axs = plt.subplots(1, len(epochs), figsize=(4.2 * len(epochs), 4))
+    for ax, ep in zip(axs, epochs):
+        D, S, prob = prediction_grid(snapshots[ep])
+        ax.contourf(D, S, prob, levels=20, cmap="RdBu_r", vmin=0, vmax=1, alpha=0.8)
+        ax.contour(D, S, prob, levels=[0.5], colors="k", linewidths=1.5)
+        ax.scatter(X[y[:, 0] == 1, 0], X[y[:, 0] == 1, 1], s=4, c="k", alpha=0.4, label="answer key: 'jump' examples")
+        ax.set_title(f"epoch {ep}")
+        ax.set_xlabel("distance")
+    axs[0].set_ylabel("speed")
     axs[-1].legend(loc="lower right", fontsize=8)
-    fig.suptitle("Fundo = o que a rede pensa (vermelho = 'pule!', azul = 'espere'). "
-                 "Pontos = gabarito, fixo desde o início.")
+    fig.suptitle("Background = what the network thinks (red = 'jump!', blue = 'wait'). "
+                 "Dots = answer key, fixed from the start.")
     fig.tight_layout()
-    fig.savefig(os.path.join(SAIDA, "04_fronteiras.png"), dpi=110)
+    fig.savefig(os.path.join(OUTPUT, "04_boundaries.png"), dpi=110)
     plt.close(fig)
 
 
-def plot_neuronio_unico(X, y, Xn):
-    """Um neurônio só traça UMA linha reta. A faixa precisa de duas — não dá."""
-    # 'rede' sem camada oculta = regressão logística
+def plot_single_neuron(X, y, Xn):
+    """A single neuron draws only ONE straight line. The band needs two — it can't be done."""
+    # a 'network' with no hidden layer = logistic regression
     w = rng.normal(0, 1, (2, 1))
     b = np.zeros((1, 1))
-    for _ in range(EPOCAS):
-        y_hat = sigmoide(Xn @ w + b)
+    for _ in range(EPOCHS):
+        y_hat = sigmoid(Xn @ w + b)
         dz = (y_hat - y) / len(y)
-        w -= TAXA_APRENDIZADO * Xn.T @ dz
-        b -= TAXA_APRENDIZADO * dz.sum(axis=0, keepdims=True)
-    acc = float(np.mean((sigmoide(Xn @ w + b) > 0.5) == y))
+        w -= LEARNING_RATE * Xn.T @ dz
+        b -= LEARNING_RATE * dz.sum(axis=0, keepdims=True)
+    acc = float(np.mean((sigmoid(Xn @ w + b) > 0.5) == y))
 
     d = np.linspace(0, 1, 200)
-    D, V = np.meshgrid(d, d)
-    prob = sigmoide(normalizar(np.column_stack([D.ravel(), V.ravel()])) @ w + b).reshape(D.shape)
+    D, S = np.meshgrid(d, d)
+    prob = sigmoid(normalize(np.column_stack([D.ravel(), S.ravel()])) @ w + b).reshape(D.shape)
     fig, ax = plt.subplots(figsize=(5, 4.5))
-    ax.contourf(D, V, prob, levels=20, cmap="RdBu_r", vmin=0, vmax=1, alpha=0.8)
-    ax.contour(D, V, prob, levels=[0.5], colors="k")
-    ax.scatter(X[y[:, 0] == 1, 0], X[y[:, 0] == 1, 1], s=4, c="k", alpha=0.4, label="gabarito: exemplos de 'pular'")
+    ax.contourf(D, S, prob, levels=20, cmap="RdBu_r", vmin=0, vmax=1, alpha=0.8)
+    ax.contour(D, S, prob, levels=[0.5], colors="k")
+    ax.scatter(X[y[:, 0] == 1, 0], X[y[:, 0] == 1, 1], s=4, c="k", alpha=0.4, label="answer key: 'jump' examples")
     ax.legend(loc="lower right", fontsize=8)
-    ax.set_title(f"Neurônio único: acurácia {acc:.0%}\n(só consegue uma linha reta)")
-    ax.set_xlabel("distância")
-    ax.set_ylabel("velocidade")
+    ax.set_title(f"Single neuron: accuracy {acc:.0%}\n(it can only draw one straight line)")
+    ax.set_xlabel("distance")
+    ax.set_ylabel("speed")
     fig.tight_layout()
-    fig.savefig(os.path.join(SAIDA, "05_neuronio_unico.png"), dpi=110)
+    fig.savefig(os.path.join(OUTPUT, "05_single_neuron.png"), dpi=110)
     plt.close(fig)
     return acc
 
 
 # ---------------------------------------------------------------------------
-# 6) REPLAY — o treino gravado, tocado como um vídeo
+# 6) REPLAY — the recorded training, played back like a video
 # ---------------------------------------------------------------------------
-VELOCIDADES = [1, 2, 5, 10, 25, 50, 100]  # épocas avançadas por quadro
+SPEEDS = [1, 2, 5, 10, 25, 50, 100]  # epochs advanced per frame
 
 
-def desachatar(v, modelo):
-    """O contrário de achatar(): volta a lista de pesos para o formato da rede."""
+def unflatten(v, template):
+    """The opposite of flatten(): turns the list of weights back into the network's shape."""
     p, i = {}, 0
     for k in ["W1", "b1", "W2", "b2"]:
-        n = modelo[k].size
-        p[k] = v[i:i + n].reshape(modelo[k].shape)
+        n = template[k].size
+        p[k] = v[i:i + n].reshape(template[k].shape)
         i += n
     return p
 
 
 class Replay:
-    """Desenha o estado do treino em qualquer época gravada no histórico."""
+    """Draws the state of training at any epoch recorded in the history."""
 
-    def __init__(self, hist, modelo, X, y, Xn):
+    def __init__(self, hist, template, X, y, Xn):
         self.h = np.array(hist)
-        self.modelo = modelo
+        self.template = template
         self.y, self.Xn = y, Xn
-        self.ultima = int(self.h[-1, 0])
-        nomes = nomes_dos_pesos(modelo)
+        self.last = int(self.h[-1, 0])
+        names = weight_names(template)
 
         self.fig, axs = plt.subplots(2, 2, figsize=(13, 8))
-        self.ax_rede, self.ax_perda, self.ax_pesos, self.ax_grad = axs.ravel()
+        self.ax_net, self.ax_loss, self.ax_weights, self.ax_grad = axs.ravel()
 
-        self.D, self.V, prob = grade_de_previsao(self.pesos(0), resolucao=80)
-        self.imagem = self.ax_rede.imshow(prob, origin="lower", extent=(0, 1, 0, 1), aspect="auto",
-                                          cmap="RdBu_r", vmin=0, vmax=1, alpha=0.85)
-        self.contorno = None
-        self.ax_rede.scatter(X[y[:, 0] == 1, 0], X[y[:, 0] == 1, 1], s=4, c="k", alpha=0.4, label="gabarito: exemplos de 'pular'")
-        self.ax_rede.legend(loc="lower right", fontsize=8)
-        self.ax_rede.set_xlabel("distância")
-        self.ax_rede.set_ylabel("velocidade")
-        self.ax_rede.set_title("O que a rede pensa: vermelho = 'pule!', azul = 'espere'")
+        self.D, self.S, prob = prediction_grid(self.weights(0), resolution=80)
+        self.image = self.ax_net.imshow(prob, origin="lower", extent=(0, 1, 0, 1), aspect="auto",
+                                        cmap="RdBu_r", vmin=0, vmax=1, alpha=0.85)
+        self.contour = None
+        self.ax_net.scatter(X[y[:, 0] == 1, 0], X[y[:, 0] == 1, 1], s=4, c="k", alpha=0.4, label="answer key: 'jump' examples")
+        self.ax_net.legend(loc="lower right", fontsize=8)
+        self.ax_net.set_xlabel("distance")
+        self.ax_net.set_ylabel("speed")
+        self.ax_net.set_title("What the network thinks: red = 'jump!', blue = 'wait'")
 
-        self.linha_perda, = self.ax_perda.plot([], [], c="#1c7ed6", label="perda")
-        self.linha_acc, = self.ax_perda.plot([], [], c="#2f9e44", label="acurácia")
-        self.ax_perda.set_xlim(0, self.ultima)
-        self.ax_perda.set_ylim(0, max(1.05, self.h[:, 1].max() * 1.05))
-        self.ax_perda.set_xlabel("época")
-        self.ax_perda.set_title("Perda caindo, acurácia subindo")
-        self.ax_perda.legend(loc="center right")
-        self.ax_perda.grid(alpha=0.3)
+        self.loss_line, = self.ax_loss.plot([], [], c="#1c7ed6", label="loss")
+        self.acc_line, = self.ax_loss.plot([], [], c="#2f9e44", label="accuracy")
+        self.ax_loss.set_xlim(0, self.last)
+        self.ax_loss.set_ylim(0, max(1.05, self.h[:, 1].max() * 1.05))
+        self.ax_loss.set_xlabel("epoch")
+        self.ax_loss.set_title("Loss going down, accuracy going up")
+        self.ax_loss.legend(loc="center right")
+        self.ax_loss.grid(alpha=0.3)
 
-        pesos = self.h[:, 4:]
-        self.linhas_pesos = [self.ax_pesos.plot([], [], lw=1)[0] for _ in nomes]
-        self.ax_pesos.set_xlim(0, self.ultima)
-        self.ax_pesos.set_ylim(pesos.min() - 0.5, pesos.max() + 0.5)
-        self.ax_pesos.set_xlabel("época")
-        self.ax_pesos.set_title(f"Os {len(nomes)} pesos se ajustando (cada linha é um peso)")
-        self.ax_pesos.grid(alpha=0.3)
-        self.marcas = [self.ax_perda.axvline(0, c="k", lw=0.8, alpha=0.4),
-                       self.ax_pesos.axvline(0, c="k", lw=0.8, alpha=0.4)]
+        weights = self.h[:, 4:]
+        self.weight_lines = [self.ax_weights.plot([], [], lw=1)[0] for _ in names]
+        self.ax_weights.set_xlim(0, self.last)
+        self.ax_weights.set_ylim(weights.min() - 0.5, weights.max() + 0.5)
+        self.ax_weights.set_xlabel("epoch")
+        self.ax_weights.set_title(f"The {len(names)} weights adjusting (each line is one weight)")
+        self.ax_weights.grid(alpha=0.3)
+        self.markers = [self.ax_loss.axvline(0, c="k", lw=0.8, alpha=0.4),
+                        self.ax_weights.axvline(0, c="k", lw=0.8, alpha=0.4)]
 
-        self.barras = self.ax_grad.bar(range(len(nomes)), np.zeros(len(nomes)))
-        self.ax_grad.set_xticks(range(len(nomes)), nomes, rotation=90, fontsize=7)
+        self.bars = self.ax_grad.bar(range(len(names)), np.zeros(len(names)))
+        self.ax_grad.set_xticks(range(len(names)), names, rotation=90, fontsize=7)
         self.ax_grad.axhline(0, c="k", lw=0.8)
 
-        self.fig.text(0.5, 0.005, "ESPAÇO pausa  ·  ← → uma época  ·  ↑ ↓ velocidade  ·  R recomeça",
+        self.fig.text(0.5, 0.005, "SPACE pause  ·  ← → one epoch  ·  ↑ ↓ speed  ·  R restart",
                       ha="center", fontsize=9, color="#555")
         self.fig.tight_layout(rect=(0, 0.02, 1, 0.96))
 
-    def pesos(self, epoca):
-        return desachatar(self.h[epoca, 4:], self.modelo)
+    def weights(self, epoch):
+        return unflatten(self.h[epoch, 4:], self.template)
 
-    def desenhar(self, epoca, status=""):
+    def draw(self, epoch, status=""):
         h = self.h
-        p = self.pesos(epoca)
+        p = self.weights(epoch)
 
-        _, _, prob = grade_de_previsao(p, resolucao=80)
-        self.imagem.set_data(prob)
-        if self.contorno is not None:
-            self.contorno.remove()
+        _, _, prob = prediction_grid(p, resolution=80)
+        self.image.set_data(prob)
+        if self.contour is not None:
+            self.contour.remove()
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore")  # sem fronteira ainda (tudo azul) gera um aviso
-            self.contorno = self.ax_rede.contour(self.D, self.V, prob, levels=[0.5],
-                                                 colors="k", linewidths=1.5)
+            warnings.simplefilter("ignore")  # no boundary yet (all blue) raises a warning
+            self.contour = self.ax_net.contour(self.D, self.S, prob, levels=[0.5],
+                                               colors="k", linewidths=1.5)
 
-        ate = slice(0, epoca + 1)
-        self.linha_perda.set_data(h[ate, 0], h[ate, 1])
-        self.linha_acc.set_data(h[ate, 0], h[ate, 2])
-        for i, linha in enumerate(self.linhas_pesos):
-            linha.set_data(h[ate, 0], h[ate, 4 + i])
-        for marca in self.marcas:
-            marca.set_xdata([epoca, epoca])
+        upto = slice(0, epoch + 1)
+        self.loss_line.set_data(h[upto, 0], h[upto, 1])
+        self.acc_line.set_data(h[upto, 0], h[upto, 2])
+        for i, line in enumerate(self.weight_lines):
+            line.set_data(h[upto, 0], h[upto, 4 + i])
+        for marker in self.markers:
+            marker.set_xdata([epoch, epoch])
 
-        # O gradiente não fica no histórico, mas é só recalcular com os pesos da época.
-        y_hat, oculta = forward(p, self.Xn)
-        grad = achatar(backward(p, self.Xn, self.y, y_hat, oculta))
-        for barra, g in zip(self.barras, grad):
-            barra.set_height(g)
-            barra.set_color("#e03131" if g > 0 else "#1971c2")
+        # The gradient isn't stored in the history, but we can just recompute it from that epoch's weights.
+        y_hat, hidden = forward(p, self.Xn)
+        grad = flatten(backward(p, self.Xn, self.y, y_hat, hidden))
+        for bar, g in zip(self.bars, grad):
+            bar.set_height(g)
+            bar.set_color("#e03131" if g > 0 else "#1971c2")
         lim = max(np.abs(grad).max() * 1.1, 1e-9)
         self.ax_grad.set_ylim(-lim, lim)
-        self.ax_grad.set_title(f"Gradiente de cada peso (o peso anda no sentido CONTRÁRIO)\n"
-                               f"tamanho total = {h[epoca, 3]:.5f} — escala ajustada a cada quadro",
+        self.ax_grad.set_title(f"Gradient of each weight (the weight moves the OPPOSITE way)\n"
+                               f"total size = {h[epoch, 3]:.5f} — scale adjusted every frame",
                                fontsize=10)
 
-        self.fig.suptitle(f"Época {epoca}/{self.ultima}   perda={h[epoca, 1]:.4f}   "
-                          f"acurácia={h[epoca, 2]:.1%}   {status}")
+        self.fig.suptitle(f"Epoch {epoch}/{self.last}   loss={h[epoch, 1]:.4f}   "
+                          f"accuracy={h[epoch, 2]:.1%}   {status}")
 
 
-def tocar_replay(replay):
+def play_replay(replay):
     for k in ("keymap.back", "keymap.forward", "keymap.home"):
-        plt.rcParams[k] = []  # libera ← → R, que o matplotlib usa para navegar no gráfico
-    estado = {"epoca": 0, "vel": 1, "pausado": False}
+        plt.rcParams[k] = []  # frees ← → R, which matplotlib uses to navigate the chart
+    state = {"epoch": 0, "speed": 1, "paused": False}
 
-    def tecla(evento):
-        if evento.key == " ":
-            estado["pausado"] = not estado["pausado"]
-        elif evento.key == "right":
-            estado["epoca"] = min(estado["epoca"] + 1, replay.ultima)
-            estado["pausado"] = True
-        elif evento.key == "left":
-            estado["epoca"] = max(estado["epoca"] - 1, 0)
-            estado["pausado"] = True
-        elif evento.key in ("up", "+", "="):
-            estado["vel"] = min(estado["vel"] + 1, len(VELOCIDADES) - 1)
-        elif evento.key in ("down", "-"):
-            estado["vel"] = max(estado["vel"] - 1, 0)
-        elif evento.key == "r":
-            estado["epoca"], estado["pausado"] = 0, False
+    def on_key(event):
+        if event.key == " ":
+            state["paused"] = not state["paused"]
+        elif event.key == "right":
+            state["epoch"] = min(state["epoch"] + 1, replay.last)
+            state["paused"] = True
+        elif event.key == "left":
+            state["epoch"] = max(state["epoch"] - 1, 0)
+            state["paused"] = True
+        elif event.key in ("up", "+", "="):
+            state["speed"] = min(state["speed"] + 1, len(SPEEDS) - 1)
+        elif event.key in ("down", "-"):
+            state["speed"] = max(state["speed"] - 1, 0)
+        elif event.key == "r":
+            state["epoch"], state["paused"] = 0, False
 
-    replay.fig.canvas.mpl_connect("key_press_event", tecla)
+    replay.fig.canvas.mpl_connect("key_press_event", on_key)
     while plt.fignum_exists(replay.fig.number):
-        vel = VELOCIDADES[estado["vel"]]
-        status = "[PAUSADO]" if estado["pausado"] else f"[{vel} época(s) por quadro]"
-        replay.desenhar(estado["epoca"], status)
+        speed = SPEEDS[state["speed"]]
+        status = "[PAUSED]" if state["paused"] else f"[{speed} epoch(s) per frame]"
+        replay.draw(state["epoch"], status)
         plt.pause(1 / 30)
-        if not estado["pausado"]:
-            if estado["epoca"] >= replay.ultima:
-                estado["pausado"] = True
+        if not state["paused"]:
+            if state["epoch"] >= replay.last:
+                state["paused"] = True
             else:
-                estado["epoca"] = min(estado["epoca"] + vel, replay.ultima)
+                state["epoch"] = min(state["epoch"] + speed, replay.last)
 
 
-def gravar_gif(replay, arquivo):
+def record_gif(replay, path):
     from matplotlib.animation import FuncAnimation, PillowWriter
 
-    # Devagar no começo, onde tudo acontece; rápido no fim, onde quase nada muda.
-    quadros = (list(range(0, 60, 2)) + list(range(60, 400, 10))
-               + list(range(400, replay.ultima, 100)) + [replay.ultima] * 15)
-    anim = FuncAnimation(replay.fig, replay.desenhar, frames=quadros)
-    anim.save(arquivo, writer=PillowWriter(fps=12), dpi=55)
+    # Slow at the start, where everything happens; fast at the end, where almost nothing changes.
+    frames = (list(range(0, 60, 2)) + list(range(60, 400, 10))
+              + list(range(400, replay.last, 100)) + [replay.last] * 15)
+    anim = FuncAnimation(replay.fig, replay.draw, frames=frames)
+    anim.save(path, writer=PillowWriter(fps=12), dpi=55)
 
 
 # ---------------------------------------------------------------------------
 def main():
-    X, y = gerar_dados(N_EXEMPLOS)
-    Xn = normalizar(X)
-    print(f"{N_EXEMPLOS} exemplos, {int(y.sum())} deles são 'pular'.")
+    X, y = make_data(N_EXAMPLES)
+    Xn = normalize(X)
+    print(f"{N_EXAMPLES} examples, {int(y.sum())} of them are 'jump'.")
 
-    p_teste = iniciar_pesos(2, N_OCULTOS)
-    checar_gradiente(p_teste, Xn, y)
+    p_test = init_weights(2, N_HIDDEN)
+    check_gradient(p_test, Xn, y)
 
-    print("\n[Treinando a rede 2 -> %d -> 1]" % N_OCULTOS)
-    p, hist, fotos = treinar(Xn, y, N_OCULTOS, EPOCAS, TAXA_APRENDIZADO)
+    print("\n[Training the network 2 -> %d -> 1]" % N_HIDDEN)
+    p, hist, snapshots = train(Xn, y, N_HIDDEN, EPOCHS, LEARNING_RATE)
 
-    nomes = nomes_dos_pesos(p)
-    with open(os.path.join(SAIDA, "historico_pesos.csv"), "w", newline="") as f:
+    names = weight_names(p)
+    with open(os.path.join(OUTPUT, "weight_history.csv"), "w", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["epoca", "perda", "acuracia", "norma_gradiente"] + nomes)
-        for linha in hist:
-            w.writerow([linha[0]] + [f"{v:.6f}" for v in linha[1:]])
+        w.writerow(["epoch", "loss", "accuracy", "gradient_norm"] + names)
+        for row in hist:
+            w.writerow([row[0]] + [f"{v:.6f}" for v in row[1:]])
 
-    # Teste com dados NOVOS, que a rede nunca viu
-    Xt, yt = gerar_dados(2000)
-    acc_teste = float(np.mean((forward(p, normalizar(Xt))[0] > 0.5) == yt))
+    # Test on NEW data the network has never seen
+    Xt, yt = make_data(2000)
+    test_acc = float(np.mean((forward(p, normalize(Xt))[0] > 0.5) == yt))
 
-    plot_dados(X, y)
-    plot_perda(hist)
-    plot_pesos(hist, nomes)
-    plot_fronteiras(fotos, X, y)
-    acc_unico = plot_neuronio_unico(X, y, Xn)
+    plot_data(X, y)
+    plot_loss(hist)
+    plot_weights(hist, names)
+    plot_boundaries(snapshots, X, y)
+    single_acc = plot_single_neuron(X, y, Xn)
 
-    print("\n=== Resultado ===")
-    print(f"Acurácia no treino:          {hist[-1][2]:.1%}")
-    print(f"Acurácia em dados novos:     {acc_teste:.1%}")
-    print(f"Neurônio único (comparação): {acc_unico:.1%}")
-    print(f"Gráficos e CSV em: {SAIDA}")
+    print("\n=== Results ===")
+    print(f"Accuracy on training data:      {hist[-1][2]:.1%}")
+    print(f"Accuracy on new data:           {test_acc:.1%}")
+    print(f"Single neuron (for comparison): {single_acc:.1%}")
+    print(f"Charts and CSV in: {OUTPUT}")
     if GIF:
-        arquivo = os.path.join(SAIDA, "treino.gif")
-        print("Gravando a animação...")
-        gravar_gif(Replay(hist, p, X, y, Xn), arquivo)
-        print(f"Animação salva em: {arquivo}")
-    if AO_VIVO:
-        print("Abrindo o replay do treino. Feche a janela para sair.")
-        tocar_replay(Replay(hist, p, X, y, Xn))
+        path = os.path.join(OUTPUT, "training.gif")
+        print("Recording the animation...")
+        record_gif(Replay(hist, p, X, y, Xn), path)
+        print(f"Animation saved to: {path}")
+    if LIVE:
+        print("Opening the training replay. Close the window to exit.")
+        play_replay(Replay(hist, p, X, y, Xn))
     elif not GIF:
-        print("Para assistir o treino como um vídeo, rode de novo com --ao-vivo")
+        print("To watch the training like a video, run again with --live")
 
 
 if __name__ == "__main__":
