@@ -77,6 +77,8 @@ output = activation( weight₁·input₁ + weight₂·input₂ + ... + bias )
 | **Activation** | A curve that bends the sum. Without it, the whole network would be just a straight line | `tanh`, `sigmoid` |
 | **Forward** | Passing the inputs through the network to get the prediction | `forward()` |
 
+> 🔍 **New to these words?** The [deep dive](concepts/README.md) explains weight, bias, activation, loss and gradient one at a time, with everyday analogies, charts, an animation and small examples worked out by hand.
+
 The sum inside the activation, `weight₁·input₁ + weight₂·input₂ + bias`, is exactly the formula of a **linear regression**. Section 6 shows what that means in practice.
 
 This network has 2×6 + 6 + 6×1 + 1 = **25 adjustable numbers**. Training = finding good values for these 25 numbers. (A large LLM has **hundreds of billions** of them — but the idea is the same.)

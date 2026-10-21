@@ -77,6 +77,8 @@ saída = ativação( peso₁·entrada₁ + peso₂·entrada₂ + ... + viés )
 | **Ativação** | Uma curva que entorta a soma. Sem ela, a rede inteira seria só uma reta | `tanh`, `sigmoid` |
 | **Forward** | Passar as entradas pela rede e obter a previsão | `forward()` |
 
+> 🔍 **Essas palavras são novas para você?** O [mergulho profundo](concepts/README.pt-BR.md) explica peso, viés, ativação, perda e gradiente um de cada vez, com analogias do dia a dia, gráficos, uma animação e pequenos exemplos resolvidos à mão.
+
 A soma dentro da ativação, `peso₁·entrada₁ + peso₂·entrada₂ + viés`, é exatamente a fórmula de uma **regressão linear**. A seção 6 mostra o que isso significa na prática.
 
 Esta rede tem 2×6 + 6 + 6×1 + 1 = **25 números ajustáveis**. Treinar = encontrar bons valores para esses 25 números. (Um LLM grande tem **centenas de bilhões** deles — mas a ideia é a mesma.)

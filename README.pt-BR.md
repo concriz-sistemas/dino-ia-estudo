@@ -296,6 +296,8 @@ Cada README existe em três versões: `README.md` (inglês), `README.pt-BR.md` (
 | **Mutação** | mutation | Mudança aleatória num peso ou na estrutura da rede. |
 | **Espécie** | species | Grupo de redes parecidas que competem entre si no NEAT. |
 
+Os cinco primeiros (peso, viés, ativação, perda e gradiente) são explicados com calma, com analogias, gráficos e uma animação, no [mergulho profundo da lição 1](lessons/01-neuron-and-gradient/concepts/README.pt-BR.md).
+
 ---
 
 ## Perguntas que aparecem pelo caminho

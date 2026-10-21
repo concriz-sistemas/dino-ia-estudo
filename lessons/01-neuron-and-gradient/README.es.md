@@ -77,6 +77,8 @@ salida = activación( peso₁·entrada₁ + peso₂·entrada₂ + ... + sesgo )
 | **Activación** | Una curva que dobla la suma. Sin ella, toda la red sería solo una línea recta | `tanh`, `sigmoid` |
 | **Forward** | Pasar las entradas por la red y obtener la predicción | `forward()` |
 
+> 🔍 **¿Son nuevas para ti estas palabras?** La [explicación a fondo](concepts/README.es.md) presenta peso, sesgo, activación, pérdida y gradiente uno por uno, con analogías de la vida cotidiana, gráficas, una animación y pequeños ejemplos resueltos a mano.
+
 La suma dentro de la activación, `peso₁·entrada₁ + peso₂·entrada₂ + sesgo`, es exactamente la fórmula de una **regresión lineal**. La sección 6 muestra qué significa eso en la práctica.
 
 Esta red tiene 2×6 + 6 + 6×1 + 1 = **25 números ajustables**. Entrenar = encontrar buenos valores para esos 25 números. (Un LLM grande tiene **cientos de miles de millones** de ellos — pero la idea es la misma.)

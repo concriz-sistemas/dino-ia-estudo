@@ -294,6 +294,8 @@ dino-ai-study/
 | **Mutation** | A random change in a weight or in the structure of the network. |
 | **Species** | A group of similar networks that compete with each other in NEAT. |
 
+The first five (weight, bias, activation, loss and gradient) are explained slowly, with analogies, charts and an animation, in the [lesson 1 deep dive](lessons/01-neuron-and-gradient/concepts/README.md).
+
 ---
 
 ## Questions that come up along the way
