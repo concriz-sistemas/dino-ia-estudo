@@ -5,13 +5,17 @@
 > **Goal:** train neural networks to play **without a gradient**, using only natural selection,
 > and record every generation so you can watch the weights change.
 
+![every 3rd generation, sped up](results/evolution.gif)
+
+*The example run sped up, showing every 3rd generation (0, 3, 6 … 27, and the last one, 29): 50 dinos per generation, the first 480 points of each match. Top right, the best score of every generation so far, including the ones the GIF skips; a bar turns green when a dino reaches 5000.*
+
 ![champions of several generations](results/champions.gif)
 
 *The champion of generations 0, 7, 14 and 29 playing the same match. Generation 0's champion crashes early (129 points); the others are still alive when their clip ends (the GIF stops each clip at 600 points).*
 
 Run them one at a time, in this order.
 
-1. Watch the evolution. The V key speeds it up, and ESC stops and saves what has been recorded so far:
+1. Watch the evolution. The ↑ ↓ arrows change the speed (1x to 64x), V jumps to maximum speed and back, and ESC stops and saves what has been recorded so far:
 
 ```bash
 python lessons/03-neuroevolution/train.py
@@ -36,6 +40,12 @@ python lessons/03-neuroevolution/watch.py
 ```
 
 To train without a window (about 3 seconds): `train.py --fast`. To change the number of generations (30 by default): `train.py --generations 50`.
+
+To record the evolution GIF again (it trains without a window and records every 3rd generation):
+
+```bash
+python lessons/03-neuroevolution/train.py --gif
+```
 
 To record the champions GIF again, after training:
 

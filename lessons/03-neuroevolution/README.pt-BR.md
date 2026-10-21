@@ -5,13 +5,17 @@
 > **Objetivo:** treinar redes neurais para jogar **sem gradiente**, só com seleção natural,
 > e registrar cada geração para ver os pesos mudando.
 
+![uma geração a cada 3, acelerado](results/evolution.gif)
+
+*O treino de exemplo acelerado, mostrando uma geração a cada 3 (0, 3, 6 … 27 e a última, 29): 50 dinos por geração, os primeiros 480 pontos de cada partida. No canto de cima, à direita, o melhor resultado de cada geração até ali, inclusive das que o GIF pula; a barra fica verde quando um dino chega a 5000.*
+
 ![campeões de várias gerações](results/champions.gif)
 
 *O campeão das gerações 0, 7, 14 e 29 jogando a mesma partida. O da geração 0 bate logo (129 pontos); os outros ainda estão vivos quando o trecho deles termina (o GIF para cada trecho em 600 pontos).*
 
 Rode um de cada vez, nesta ordem.
 
-1. Assista à evolução. A tecla V acelera, e ESC para e salva o que já foi registrado:
+1. Assista à evolução. As setas ↑ ↓ mudam a velocidade (de 1x a 64x), V pula para a velocidade máxima e volta, e ESC para e salva o que já foi registrado:
 
 ```bash
 python lessons/03-neuroevolution/train.py
@@ -36,6 +40,12 @@ python lessons/03-neuroevolution/watch.py
 ```
 
 Para treinar sem janela (uns 3 segundos): `train.py --fast`. Para mudar o número de gerações (30 por padrão): `train.py --generations 50`.
+
+Para gravar de novo o GIF da evolução (ele treina sem janela e grava uma geração a cada 3):
+
+```bash
+python lessons/03-neuroevolution/train.py --gif
+```
 
 Para gravar de novo o GIF dos campeões, depois de treinar:
 

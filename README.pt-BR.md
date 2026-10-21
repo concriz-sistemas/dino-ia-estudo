@@ -97,7 +97,11 @@ Você joga (ESPAÇO pula, ↓ abaixa) e vê no canto os 6 números que a IA rece
 python lessons/03-neuroevolution/train.py
 ```
 
-Cada geração, 50 dinos com redes diferentes jogam juntos; os melhores têm filhos com mutações. A tecla V acelera. Depois, gere os gráficos e o relatório:
+Cada geração, 50 dinos com redes diferentes jogam juntos; os melhores têm filhos com mutações. As setas ↑ ↓ mudam a velocidade (de 1x a 64x) e V pula para a velocidade máxima:
+
+![uma geração a cada 3, acelerado](lessons/03-neuroevolution/results/evolution.gif)
+
+Depois, gere os gráficos e o relatório:
 
 ```bash
 python lessons/03-neuroevolution/report.py
@@ -141,6 +145,10 @@ Os GIFs desta página são gerados pelos próprios scripts:
 
 ```bash
 python lessons/01-neuron-and-gradient/train_from_scratch.py --gif
+```
+
+```bash
+python lessons/03-neuroevolution/train.py --gif
 ```
 
 ```bash
