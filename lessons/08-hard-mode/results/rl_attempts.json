@@ -1,0 +1,158 @@
+{
+ "1. from scratch": {
+  "steps": 3000000,
+  "original game": [
+   5000,
+   5000,
+   5000,
+   5000,
+   5000,
+   5000,
+   5000,
+   5000,
+   5000,
+   5000
+  ],
+  "hard game": [
+   1043,
+   835,
+   797,
+   1075,
+   784,
+   1019,
+   1255,
+   917,
+   785,
+   1003
+  ],
+  "crashed_into": [
+   "bird_staircase",
+   "bird_tunnel",
+   "bird_staircase",
+   "bird_staircase",
+   "bird_tunnel",
+   "bird_tunnel",
+   "bird_tunnel",
+   "bird_tunnel",
+   "bird_staircase",
+   "bird_tunnel"
+  ]
+ },
+ "2. fine-tuning lesson 4": {
+  "steps": 1000000,
+  "original game": [
+   5000,
+   5000,
+   5000,
+   5000,
+   5000,
+   5000,
+   5000,
+   5000,
+   5000,
+   5000
+  ],
+  "hard game": [
+   1041,
+   835,
+   797,
+   1075,
+   783,
+   1019,
+   1253,
+   915,
+   785,
+   1001
+  ],
+  "crashed_into": [
+   "bird_staircase",
+   "bird_tunnel",
+   "bird_staircase",
+   "bird_staircase",
+   "bird_tunnel",
+   "bird_tunnel",
+   "bird_tunnel",
+   "bird_tunnel",
+   "bird_staircase",
+   "bird_tunnel"
+  ]
+ },
+ "3. + curriculum": {
+  "steps": 2000000,
+  "original game": [
+   5000,
+   5000,
+   5000,
+   5000,
+   5000,
+   5000,
+   5000,
+   5000,
+   5000,
+   5000
+  ],
+  "hard game": [
+   1041,
+   837,
+   797,
+   1075,
+   787,
+   1023,
+   1257,
+   919,
+   785,
+   1005
+  ],
+  "crashed_into": [
+   "bird_staircase",
+   "bird_tunnel",
+   "bird_staircase",
+   "bird_staircase",
+   "bird_tunnel",
+   "bird_tunnel",
+   "bird_tunnel",
+   "bird_tunnel",
+   "bird_staircase",
+   "bird_tunnel"
+  ]
+ },
+ "4. + more exploration": {
+  "steps": 3000000,
+  "original game": [
+   3722,
+   3808,
+   5000,
+   4091,
+   3940,
+   4043,
+   4552,
+   3793,
+   5000,
+   4988
+  ],
+  "hard game": [
+   1043,
+   841,
+   799,
+   1077,
+   789,
+   1025,
+   1259,
+   923,
+   787,
+   1007
+  ],
+  "crashed_into": [
+   "bird_staircase",
+   "bird_tunnel",
+   "bird_staircase",
+   "bird_staircase",
+   "bird_tunnel",
+   "bird_tunnel",
+   "bird_tunnel",
+   "bird_tunnel",
+   "bird_staircase",
+   "bird_tunnel"
+  ]
+ }
+}
