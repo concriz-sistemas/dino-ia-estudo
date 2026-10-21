@@ -1,19 +1,19 @@
 """
-assistir.py — Mostra o campeão de uma geração jogando, com a rede dele ao lado.
+watch.py — Shows a generation's champion playing, with its network beside it.
 
-Rode a partir da raiz do repositório, depois de treinar:
-    # campeão da última geração
-    python licoes/03-neuroevolucao/assistir.py
-    # campeão da geração 0
-    python licoes/03-neuroevolucao/assistir.py --geracao 0
-    # grava resultados/campeoes.gif: campeões de várias gerações na mesma partida
-    python licoes/03-neuroevolucao/assistir.py --gif
+Run from the repository root, after training:
+    # champion of the last generation
+    python lessons/03-neuroevolution/watch.py
+    # champion of generation 0
+    python lessons/03-neuroevolution/watch.py --generation 0
+    # records results/champions.gif: champions of several generations in the same match
+    python lessons/03-neuroevolution/watch.py --gif
 
-Teclas: R = nova partida, ← / → = campeão da geração anterior / seguinte, ESC = sair
+Keys: R = new match, ← / → = champion of the previous / next generation, ESC = quit
 
-No painel da direita: entradas à esquerda (quanto mais azul, maior o valor),
-saídas à direita (a amarela é a ação escolhida). Linhas verdes = peso positivo,
-vermelhas = negativo; espessura = força do peso.
+In the right-hand panel: inputs on the left (the bluer, the larger the value),
+outputs on the right (the yellow one is the chosen action). Green lines = positive
+weight, red = negative; thickness = strength of the weight.
 """
 import argparse
 import os
@@ -21,123 +21,123 @@ import pickle
 import random
 import sys
 
-PASTA = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.abspath(os.path.join(PASTA, "..", "..")))
+FOLDER = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.abspath(os.path.join(FOLDER, "..", "..")))
 
 import neat
 import pygame
 
-from dino.jogo import Jogo, LARGURA, ALTURA, NADA, PULAR, ABAIXAR
-from rede_util import NOMES_ENTRADAS, NOMES_SAIDAS
+from dino.game import Game, WIDTH, HEIGHT, NOTHING, JUMP, DUCK
+from net_utils import INPUT_NAMES, OUTPUT_NAMES
 
-ACOES = [NADA, PULAR, ABAIXAR]
-PAINEL = 340
+ACTIONS = [NOTHING, JUMP, DUCK]
+PANEL = 340
 
 
-def desenhar_rede(tela, fonte, genoma, config, entradas, saidas):
+def draw_network(screen, font, genome, config, inputs, outputs):
     gc = config.genome_config
-    x0 = LARGURA
-    pygame.draw.rect(tela, (235, 235, 240), (x0, 0, PAINEL, ALTURA))
-    ocultos = [k for k in genoma.nodes if k not in gc.output_keys]
+    x0 = WIDTH
+    pygame.draw.rect(screen, (235, 235, 240), (x0, 0, PANEL, HEIGHT))
+    hidden = [k for k in genome.nodes if k not in gc.output_keys]
     pos = {}
     for i, k in enumerate(gc.input_keys):
-        pos[k] = (x0 + 85, (i + 1) * ALTURA // (len(gc.input_keys) + 1))
-    for i, k in enumerate(ocultos):
-        pos[k] = (x0 + 185, (i + 1) * ALTURA // (len(ocultos) + 1))
+        pos[k] = (x0 + 85, (i + 1) * HEIGHT // (len(gc.input_keys) + 1))
+    for i, k in enumerate(hidden):
+        pos[k] = (x0 + 185, (i + 1) * HEIGHT // (len(hidden) + 1))
     for i, k in enumerate(gc.output_keys):
-        pos[k] = (x0 + 265, (i + 1) * ALTURA // (len(gc.output_keys) + 1))
+        pos[k] = (x0 + 265, (i + 1) * HEIGHT // (len(gc.output_keys) + 1))
 
-    for (a, b), c in genoma.connections.items():
+    for (a, b), c in genome.connections.items():
         if c.enabled and a in pos and b in pos:
-            cor = (60, 160, 80) if c.weight > 0 else (200, 70, 70)
-            pygame.draw.line(tela, cor, pos[a], pos[b], max(1, min(5, int(abs(c.weight)))))
+            color = (60, 160, 80) if c.weight > 0 else (200, 70, 70)
+            pygame.draw.line(screen, color, pos[a], pos[b], max(1, min(5, int(abs(c.weight)))))
 
-    escolha = saidas.index(max(saidas))
+    choice = outputs.index(max(outputs))
     for i, k in enumerate(gc.input_keys):
-        v = max(0.0, min(1.0, entradas[i]))
-        pygame.draw.circle(tela, (int(255 * (1 - v)), int(255 * (1 - v)), 255), pos[k], 9)
-        pygame.draw.circle(tela, (50, 50, 50), pos[k], 9, 1)
-        tela.blit(fonte.render(NOMES_ENTRADAS[i], True, (40, 40, 40)), (x0 + 4, pos[k][1] - 7))
-    for k in ocultos:
-        pygame.draw.circle(tela, (190, 180, 230), pos[k], 7)
+        v = max(0.0, min(1.0, inputs[i]))
+        pygame.draw.circle(screen, (int(255 * (1 - v)), int(255 * (1 - v)), 255), pos[k], 9)
+        pygame.draw.circle(screen, (50, 50, 50), pos[k], 9, 1)
+        screen.blit(font.render(INPUT_NAMES[i], True, (40, 40, 40)), (x0 + 4, pos[k][1] - 7))
+    for k in hidden:
+        pygame.draw.circle(screen, (190, 180, 230), pos[k], 7)
     for i, k in enumerate(gc.output_keys):
-        cor = (255, 200, 0) if i == escolha else (220, 220, 220)
-        pygame.draw.circle(tela, cor, pos[k], 10)
-        pygame.draw.circle(tela, (50, 50, 50), pos[k], 10, 1)
-        tela.blit(fonte.render(NOMES_SAIDAS[i], True, (40, 40, 40)), (pos[k][0] + 14, pos[k][1] - 7))
+        color = (255, 200, 0) if i == choice else (220, 220, 220)
+        pygame.draw.circle(screen, color, pos[k], 10)
+        pygame.draw.circle(screen, (50, 50, 50), pos[k], 10, 1)
+        screen.blit(font.render(OUTPUT_NAMES[i], True, (40, 40, 40)), (pos[k][0] + 14, pos[k][1] - 7))
 
 
-def gravar_gif(campeoes, config, arquivo):
-    """Campeões de algumas gerações jogando a MESMA partida, um depois do outro."""
+def record_gif(champions, config, path):
+    """Champions of a few generations playing the SAME match, one after the other."""
     from PIL import Image
 
-    ultima = len(campeoes) - 1
-    geracoes = sorted({0, ultima // 4, ultima // 2, ultima})
+    last = len(champions) - 1
+    generations = sorted({0, last // 4, last // 2, last})
     pygame.init()
-    tela = pygame.Surface((LARGURA + PAINEL, ALTURA))
-    fonte = pygame.font.SysFont("monospace", 14)
-    quadros = []
-    for g in geracoes:
-        rede = neat.nn.FeedForwardNetwork.create(campeoes[g], config)
-        jogo = Jogo(1, semente=7, cores=[(40, 120, 220)])
-        depois_de_bater = 0
-        while jogo.quadro < 600 and depois_de_bater < 45:
-            dino = jogo.dinos[0]
-            entradas = jogo.sensores(dino)
-            saidas = rede.activate(entradas)
-            if dino.vivo:
-                jogo.passo([ACOES[saidas.index(max(saidas))]])
+    screen = pygame.Surface((WIDTH + PANEL, HEIGHT))
+    font = pygame.font.SysFont("monospace", 14)
+    frames = []
+    for g in generations:
+        net = neat.nn.FeedForwardNetwork.create(champions[g], config)
+        game = Game(1, seed=7, colors=[(40, 120, 220)])
+        after_crash = 0
+        while game.frame < 600 and after_crash < 45:
+            dino = game.dinos[0]
+            inputs = game.sensors(dino)
+            outputs = net.activate(inputs)
+            if dino.alive:
+                game.step([ACTIONS[outputs.index(max(outputs))]])
             else:
-                depois_de_bater += 1
-            # 1 a cada 4 quadros do jogo; depois de bater, 1 a cada 3 (só para pausar a cena)
-            if (dino.vivo and jogo.quadro % 4 == 0) or (not dino.vivo and depois_de_bater % 3 == 0):
-                info = [f"Campeão da geração {g}", f"Pontos: {dino.pontos}"]
-                if not dino.vivo:
-                    info.append("Bateu!")
-                jogo.desenhar(tela, fonte, info, destacar=dino)
-                desenhar_rede(tela, fonte, campeoes[g], config, entradas, saidas)
-                img = Image.frombytes("RGB", tela.get_size(), pygame.image.tobytes(tela, "RGB"))
-                quadros.append(img.resize((img.width * 3 // 5, img.height * 3 // 5)))
-        print(f"  geração {g}: {jogo.dinos[0].pontos} pontos")
-    quadros[0].save(arquivo, save_all=True, append_images=quadros[1:], duration=66, loop=0, optimize=True)
+                after_crash += 1
+            # 1 in every 4 game frames; after the crash, 1 in every 3 (just to pause the scene)
+            if (dino.alive and game.frame % 4 == 0) or (not dino.alive and after_crash % 3 == 0):
+                info = [f"Champion of generation {g}", f"Score: {dino.score}"]
+                if not dino.alive:
+                    info.append("Crashed!")
+                game.draw(screen, font, info, highlight=dino)
+                draw_network(screen, font, champions[g], config, inputs, outputs)
+                img = Image.frombytes("RGB", screen.get_size(), pygame.image.tobytes(screen, "RGB"))
+                frames.append(img.resize((img.width * 3 // 5, img.height * 3 // 5)))
+        print(f"  generation {g}: {game.dinos[0].score} points")
+    frames[0].save(path, save_all=True, append_images=frames[1:], duration=66, loop=0, optimize=True)
 
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--geracao", type=int, default=-1, help="qual geração assistir (padrão: a última)")
-    p.add_argument("--gif", action="store_true", help="grava resultados/campeoes.gif em vez de abrir a janela")
+    p.add_argument("--generation", type=int, default=-1, help="which generation to watch (default: the last)")
+    p.add_argument("--gif", action="store_true", help="record results/champions.gif instead of opening the window")
     args = p.parse_args()
 
-    arq = os.path.join(PASTA, "resultados", "campeoes.pkl")
-    if not os.path.exists(arq):
-        print("Nenhum treino salvo ainda. Rode primeiro: python licoes/03-neuroevolucao/treinar.py")
+    path = os.path.join(FOLDER, "results", "champions.pkl")
+    if not os.path.exists(path):
+        print("No saved training yet. First run: python lessons/03-neuroevolution/train.py")
         return
-    with open(arq, "rb") as f:
-        campeoes = pickle.load(f)
+    with open(path, "rb") as f:
+        champions = pickle.load(f)
     config = neat.Config(
         neat.DefaultGenome, neat.DefaultReproduction,
         neat.DefaultSpeciesSet, neat.DefaultStagnation,
-        os.path.join(PASTA, "config-neat.txt"),
+        os.path.join(FOLDER, "neat-config.txt"),
     )
     if args.gif:
-        arquivo = os.path.join(PASTA, "resultados", "campeoes.gif")
-        gravar_gif(campeoes, config, arquivo)
-        print(f"Animação salva em: {arquivo}")
+        gif_path = os.path.join(FOLDER, "results", "champions.gif")
+        record_gif(champions, config, gif_path)
+        print(f"Animation saved to: {gif_path}")
         return
-    idx = args.geracao % len(campeoes)
+    idx = args.generation % len(champions)
 
     pygame.init()
-    tela = pygame.display.set_mode((LARGURA + PAINEL, ALTURA))
-    fonte = pygame.font.SysFont("monospace", 14)
-    relogio = pygame.time.Clock()
+    screen = pygame.display.set_mode((WIDTH + PANEL, HEIGHT))
+    font = pygame.font.SysFont("monospace", 14)
+    clock = pygame.time.Clock()
 
-    def preparar(i):
-        pygame.display.set_caption(f"Dino IA — campeão da geração {i}")
-        rede = neat.nn.FeedForwardNetwork.create(campeoes[i], config)
-        jogo = Jogo(1, semente=random.randint(0, 10**9), cores=[(40, 120, 220)])
-        return rede, jogo
+    def setup(i):
+        pygame.display.set_caption(f"Dino AI — champion of generation {i}")
+        net = neat.nn.FeedForwardNetwork.create(champions[i], config)
+        game = Game(1, seed=random.randint(0, 10**9), colors=[(40, 120, 220)])
+        return net, game
 
-    rede, jogo = preparar(idx)
+    net, game = setup(idx)
     while True:
         for e in pygame.event.get():
             if e.type == pygame.QUIT or (e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE):
@@ -145,29 +145,29 @@ def main():
                 return
             if e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_r:
-                    rede, jogo = preparar(idx)
+                    net, game = setup(idx)
                 elif e.key == pygame.K_RIGHT:
-                    idx = min(idx + 1, len(campeoes) - 1)
-                    rede, jogo = preparar(idx)
+                    idx = min(idx + 1, len(champions) - 1)
+                    net, game = setup(idx)
                 elif e.key == pygame.K_LEFT:
                     idx = max(idx - 1, 0)
-                    rede, jogo = preparar(idx)
+                    net, game = setup(idx)
 
-        dino = jogo.dinos[0]
-        entradas = jogo.sensores(dino)
-        saidas = rede.activate(entradas)
-        if dino.vivo:
-            jogo.passo([ACOES[saidas.index(max(saidas))]])
+        dino = game.dinos[0]
+        inputs = game.sensors(dino)
+        outputs = net.activate(inputs)
+        if dino.alive:
+            game.step([ACTIONS[outputs.index(max(outputs))]])
 
-        info = [f"Campeão da geração {idx} (de {len(campeoes) - 1})",
-                f"Pontos: {dino.pontos}", f"Velocidade: {jogo.vel:.1f}",
-                "← → troca de geração | R nova partida"]
-        if not dino.vivo:
-            info.append("Bateu!")
-        jogo.desenhar(tela, fonte, info, destacar=dino)
-        desenhar_rede(tela, fonte, campeoes[idx], config, entradas, saidas)
+        info = [f"Champion of generation {idx} (of {len(champions) - 1})",
+                f"Score: {dino.score}", f"Speed: {game.speed:.1f}",
+                "← → change generation | R new match"]
+        if not dino.alive:
+            info.append("Crashed!")
+        game.draw(screen, font, info, highlight=dino)
+        draw_network(screen, font, champions[idx], config, inputs, outputs)
         pygame.display.flip()
-        relogio.tick(60)
+        clock.tick(60)
 
 
 if __name__ == "__main__":

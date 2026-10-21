@@ -1,20 +1,20 @@
-# Configuração do NEAT (NeuroEvolution of Augmenting Topologies)
-# Cada linha controla como as redes nascem, sofrem mutação e se reproduzem.
-# Experimente mudar os valores e observe o efeito no treino!
+# NEAT configuration (NeuroEvolution of Augmenting Topologies)
+# Each line controls how the networks are born, mutate and reproduce.
+# Try changing the values and watch the effect on training!
 
 [NEAT]
 fitness_criterion     = max
-# Meta de pontuação (só encerra o treino se no_fitness_termination = False)
+# Target score (only ends training if no_fitness_termination = False)
 fitness_threshold     = 5000
-# Quantos dinos por geração
+# How many dinos per generation
 pop_size              = 50
 reset_on_extinction   = False
-# True = roda sempre o número de gerações pedido, mesmo se alguém bater a meta.
-# Assim dá para ver a POPULAÇÃO inteira melhorando, não só o primeiro campeão.
+# True = always runs the requested number of generations, even if someone hits the target.
+# That way you can see the whole POPULATION improving, not just the first champion.
 no_fitness_termination = True
 
 [DefaultGenome]
-# --- funções de ativação dos neurônios ---
+# --- the neurons' activation functions ---
 activation_default      = tanh
 activation_mutate_rate  = 0.0
 activation_options      = tanh
@@ -23,7 +23,7 @@ aggregation_default     = sum
 aggregation_mutate_rate = 0.0
 aggregation_options     = sum
 
-# --- bias (viés) de cada neurônio ---
+# --- each neuron's bias ---
 bias_init_mean          = 0.0
 bias_init_stdev         = 1.0
 bias_max_value          = 30.0
@@ -32,11 +32,11 @@ bias_mutate_power       = 0.5
 bias_mutate_rate        = 0.7
 bias_replace_rate       = 0.1
 
-# --- quando duas redes são "parecidas" (mesma espécie) ---
+# --- when two networks are "similar" (same species) ---
 compatibility_disjoint_coefficient = 1.0
 compatibility_weight_coefficient   = 0.5
 
-# --- mutações de estrutura: adicionar/remover conexões e neurônios ---
+# --- structural mutations: adding/removing connections and neurons ---
 conn_add_prob           = 0.5
 conn_delete_prob        = 0.5
 node_add_prob           = 0.2
@@ -46,10 +46,10 @@ enabled_default         = True
 enabled_mutate_rate     = 0.01
 
 feed_forward            = True
-# Começa com todas as entradas ligadas a todas as saídas
+# Starts with every input connected to every output
 initial_connection      = full
 
-# --- formato da rede: 6 sensores -> 3 ações (nada, pular, abaixar) ---
+# --- network shape: 6 sensors -> 3 actions (nothing, jump, duck) ---
 num_hidden              = 0
 num_inputs              = 6
 num_outputs             = 3
@@ -62,7 +62,7 @@ response_mutate_power   = 0.0
 response_mutate_rate    = 0.0
 response_replace_rate   = 0.0
 
-# --- pesos das conexões (é aqui que o "aprendizado" acontece) ---
+# --- connection weights (this is where the "learning" happens) ---
 weight_init_mean        = 0.0
 weight_init_stdev       = 1.0
 weight_max_value        = 30
@@ -80,7 +80,7 @@ max_stagnation       = 20
 species_elitism      = 2
 
 [DefaultReproduction]
-# Os 2 melhores passam intactos para a próxima geração
+# The 2 best pass unchanged to the next generation
 elitism            = 2
-# Só os 20% melhores de cada espécie têm "filhos"
+# Only the top 20% of each species have "children"
 survival_threshold = 0.2

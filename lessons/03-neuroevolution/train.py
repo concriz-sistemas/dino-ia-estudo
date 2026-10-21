@@ -1,219 +1,229 @@
 """
-Lição 3 — Treina dinossauros com neuroevolução (NEAT) e REGISTRA tudo.
+Lesson 3 — Trains dinosaurs with neuroevolution (NEAT) and RECORDS everything.
 
-Rode a partir da raiz do repositório:
-    # com janela, para assistir
-    python licoes/03-neuroevolucao/treinar.py
-    # sem janela, bem mais rápido
-    python licoes/03-neuroevolucao/treinar.py --rapido
-    python licoes/03-neuroevolucao/treinar.py --geracoes 50
+Run from the repository root:
+    # with a window, so you can watch
+    python lessons/03-neuroevolution/train.py
+    # without a window, much faster
+    python lessons/03-neuroevolution/train.py --fast
+    python lessons/03-neuroevolution/train.py --generations 50
 
-Teclas durante o treino (modo com janela):
-    V   = liga/desliga o desenho (acelera muito)
-    ESC = encerra e salva o que foi registrado até agora
+Keys during training (window mode):
+    V   = toggle drawing on/off (speeds things up a lot)
+    ESC = stop and save what has been recorded so far
 
-O que é salvo em resultados/:
-    historico.json  — para CADA geração: notas, espécies, o campeão completo
-                      (todos os pesos) e os pesos de toda a população
-    campeoes.pkl    — o campeão de cada geração, para assistir depois
-Depois rode o relatório:
-    python licoes/03-neuroevolucao/relatorio.py
+What gets saved in results/:
+    history.json   — for EACH generation: scores, species, the full champion
+                     (all of its weights) and the weights of the whole population
+    champions.pkl  — the champion of each generation, to watch later
+Then run the report:
+    python lessons/03-neuroevolution/report.py
 """
 import argparse
 import configparser
 import json
 import os
 import pickle
+import random
 import statistics
 import sys
 
-PASTA = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.abspath(os.path.join(PASTA, "..", "..")))
+FOLDER = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.abspath(os.path.join(FOLDER, "..", "..")))
 
 import neat
 import pygame
 
-from dino.jogo import Jogo, LARGURA, ALTURA, NADA, PULAR, ABAIXAR
-from rede_util import genoma_para_dict
+from dino.game import Game, WIDTH, HEIGHT, NOTHING, JUMP, DUCK
+from net_utils import genome_to_dict
 
-ARQ_CONFIG = os.path.join(PASTA, "config-neat.txt")
-SAIDA = os.path.join(PASTA, "resultados")
-ARQ_HISTORICO = os.path.join(SAIDA, "historico.json")
-ARQ_CAMPEOES = os.path.join(SAIDA, "campeoes.pkl")
+CONFIG_FILE = os.path.join(FOLDER, "neat-config.txt")
+OUTPUT = os.path.join(FOLDER, "results")
+HISTORY_FILE = os.path.join(OUTPUT, "history.json")
+CHAMPIONS_FILE = os.path.join(OUTPUT, "champions.pkl")
 
-# Teto de pontos por partida — sem isso, um dino perfeito jogaria para sempre
-LIMITE_PONTOS = 5000
-ACOES = [NADA, PULAR, ABAIXAR]
+# NEAT draws all its random numbers (initial weights, mutations, who reproduces)
+# from Python's `random` module. Seeding it makes every run evolve exactly the same
+# way, so two runs give the same results. Change it to see a different evolution.
+SEED = 0
+
+# Score cap per match — without it, a perfect dino would play forever
+SCORE_LIMIT = 5000
+ACTIONS = [NOTHING, JUMP, DUCK]
 
 
-class TreinoInterrompido(Exception):
+class TrainingInterrupted(Exception):
     pass
 
 
 # ---------------------------------------------------------------------------
-# O "caderno de anotações" do treino.
-# O NEAT chama post_evaluate() ao fim de cada geração, já com as notas de todos.
+# The training "notebook".
+# NEAT calls post_evaluate() at the end of each generation, with everyone's scores.
 # ---------------------------------------------------------------------------
-class Registrador(neat.reporting.BaseReporter):
+class Recorder(neat.reporting.BaseReporter):
     def __init__(self):
-        self.geracao = -1
-        self.geracoes = []
-        self.campeoes = []
+        self.generation = -1
+        self.generations = []
+        self.champions = []
 
     def start_generation(self, generation):
-        self.geracao = generation
+        self.generation = generation
 
     def post_evaluate(self, config, population, species, best_genome):
-        notas = [g.fitness for g in population.values()]
-        # todos os pesos ativos de toda a população (para ver a distribuição)
-        pesos = [round(c.weight, 3)
-                 for g in population.values()
-                 for c in g.connections.values() if c.enabled]
-        especies = [
-            {"id": sid, "tamanho": len(s.members),
-             "melhor": max(population[k].fitness for k in s.members if k in population)}
+        scores = [g.fitness for g in population.values()]
+        # every enabled weight of the whole population (to see the distribution)
+        weights = [round(c.weight, 3)
+                   for g in population.values()
+                   for c in g.connections.values() if c.enabled]
+        species_list = [
+            {"id": sid, "size": len(s.members),
+             "best": max(population[k].fitness for k in s.members if k in population)}
             for sid, s in species.species.items()
         ]
-        campeao = max(population.values(), key=lambda g: g.fitness)
-        self.geracoes.append({
-            "geracao": self.geracao,
-            "melhor": max(notas),
-            "media": round(statistics.mean(notas), 2),
-            "mediana": statistics.median(notas),
-            "desvio": round(statistics.pstdev(notas), 2),
-            "n_especies": len(especies),
-            "especies": especies,
-            "campeao": genoma_para_dict(campeao),
-            "pesos_populacao": pesos,
+        champion = max(population.values(), key=lambda g: g.fitness)
+        self.generations.append({
+            "generation": self.generation,
+            "best": max(scores),
+            "average": round(statistics.mean(scores), 2),
+            "median": statistics.median(scores),
+            "stdev": round(statistics.pstdev(scores), 2),
+            "n_species": len(species_list),
+            "species": species_list,
+            "champion": genome_to_dict(champion),
+            "population_weights": weights,
         })
-        self.campeoes.append(pickle.loads(pickle.dumps(campeao)))  # cópia
+        self.champions.append(pickle.loads(pickle.dumps(champion)))  # a copy
 
-    def salvar(self, config_path):
-        os.makedirs(SAIDA, exist_ok=True)
+    def save(self, config_path):
+        os.makedirs(OUTPUT, exist_ok=True)
         cp = configparser.ConfigParser()
         cp.read(config_path)
-        dados = {
-            "parametros": {sec: dict(cp[sec]) for sec in cp.sections()},
-            "limite_pontos": LIMITE_PONTOS,
-            "geracoes": self.geracoes,
+        data = {
+            "parameters": {sec: dict(cp[sec]) for sec in cp.sections()},
+            "score_limit": SCORE_LIMIT,
+            "generations": self.generations,
         }
-        with open(ARQ_HISTORICO, "w", encoding="utf-8") as f:
-            json.dump(dados, f, ensure_ascii=False)
-        with open(ARQ_CAMPEOES, "wb") as f:
-            pickle.dump(self.campeoes, f)
+        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False)
+        with open(CHAMPIONS_FILE, "wb") as f:
+            pickle.dump(self.champions, f)
 
 
 # ---------------------------------------------------------------------------
-# Avaliação: cada geração joga UMA partida, todos juntos
+# Evaluation: each generation plays ONE match, all together
 # ---------------------------------------------------------------------------
-class Treinador:
-    def __init__(self, mostrar):
-        self.mostrar = mostrar
-        self.desenhar = mostrar
-        self.parar = False
+class Trainer:
+    def __init__(self, show):
+        self.show = show
+        self.draw = show
+        self.stop = False
         self.n = 0
-        if mostrar:
+        if show:
             pygame.init()
-            self.tela = pygame.display.set_mode((LARGURA, ALTURA))
-            pygame.display.set_caption("Dino IA — treinando com NEAT")
-            self.fonte = pygame.font.SysFont("monospace", 16)
-            self.relogio = pygame.time.Clock()
+            self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
+            pygame.display.set_caption("Dino AI — training with NEAT")
+            self.font = pygame.font.SysFont("monospace", 16)
+            self.clock = pygame.time.Clock()
 
-    def _eventos(self):
+    def _events(self):
         for e in pygame.event.get():
             if e.type == pygame.QUIT or (e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE):
-                self.parar = True
+                self.stop = True
             if e.type == pygame.KEYDOWN and e.key == pygame.K_v:
-                self.desenhar = not self.desenhar
+                self.draw = not self.draw
 
-    def avaliar_genomas(self, genomas, config):
-        if self.parar:
-            raise TreinoInterrompido()
+    def eval_genomes(self, genomes, config):
+        if self.stop:
+            raise TrainingInterrupted()
         self.n += 1
-        # Mesma semente para todos da geração => todos enfrentam os mesmos obstáculos.
-        # Semente diferente a cada geração => não dá para "decorar" a fase.
-        jogo = Jogo(len(genomas), semente=self.n)
-        redes = [neat.nn.FeedForwardNetwork.create(g, config) for _, g in genomas]
+        # Same seed for the whole generation => everyone faces the same obstacles.
+        # A different seed each generation => nobody can "memorize" the level.
+        game = Game(len(genomes), seed=self.n)
+        nets = [neat.nn.FeedForwardNetwork.create(g, config) for _, g in genomes]
 
-        while jogo.algum_vivo() and jogo.quadro < LIMITE_PONTOS and not self.parar:
-            if self.mostrar:
-                self._eventos()
+        while game.any_alive() and game.frame < SCORE_LIMIT and not self.stop:
+            if self.show:
+                self._events()
 
-            # 1) cada rede olha os sensores e escolhe uma ação (a maior saída vence)
-            acoes = []
-            for dino, rede in zip(jogo.dinos, redes):
-                if not dino.vivo:
-                    acoes.append(NADA)
+            # 1) each network looks at the sensors and picks an action (the largest output wins)
+            actions = []
+            for dino, net in zip(game.dinos, nets):
+                if not dino.alive:
+                    actions.append(NOTHING)
                     continue
-                saidas = rede.activate(jogo.sensores(dino))
-                acoes.append(ACOES[saidas.index(max(saidas))])
+                outputs = net.activate(game.sensors(dino))
+                actions.append(ACTIONS[outputs.index(max(outputs))])
 
-            # 2) o jogo avança um quadro
-            jogo.passo(acoes)
+            # 2) the game advances one frame
+            game.step(actions)
 
-            # 3) desenha (opcional)
-            if self.mostrar and self.desenhar:
-                vivos = [d for d in jogo.dinos if d.vivo]
-                jogo.desenhar(
-                    self.tela, self.fonte,
-                    [f"Geração: {self.n - 1}",
-                     f"Vivos: {len(vivos)}/{len(jogo.dinos)}",
-                     f"Pontos: {jogo.quadro}",
-                     f"Velocidade: {jogo.vel:.1f}",
-                     "V = acelerar | ESC = parar"],
-                    destacar=vivos[0] if vivos else None,
+            # 3) draw (optional)
+            if self.show and self.draw:
+                alive = [d for d in game.dinos if d.alive]
+                game.draw(
+                    self.screen, self.font,
+                    [f"Generation: {self.n - 1}",
+                     f"Alive: {len(alive)}/{len(game.dinos)}",
+                     f"Score: {game.frame}",
+                     f"Speed: {game.speed:.1f}",
+                     "V = speed up | ESC = stop"],
+                    highlight=alive[0] if alive else None,
                 )
                 pygame.display.flip()
-                self.relogio.tick(60)
-            elif self.mostrar and jogo.quadro % 200 == 0:
-                pygame.display.set_caption(f"Geração {self.n - 1} — {jogo.quadro} pts (V para ver)")
+                self.clock.tick(60)
+            elif self.show and game.frame % 200 == 0:
+                pygame.display.set_caption(f"Generation {self.n - 1} — {game.frame} pts (V to watch)")
 
-        # 4) a nota (fitness) de cada genoma = quantos quadros o dino dele sobreviveu
-        for (_, genoma), dino in zip(genomas, jogo.dinos):
-            genoma.fitness = dino.pontos
+        # 4) each genome's score (fitness) = how many frames its dino survived
+        for (_, genome), dino in zip(genomes, game.dinos):
+            genome.fitness = dino.score
 
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--rapido", action="store_true", help="treinar sem janela")
-    p.add_argument("--geracoes", type=int, default=30)
+    p.add_argument("--fast", action="store_true", help="train without a window")
+    p.add_argument("--generations", type=int, default=30)
     args = p.parse_args()
+
+    # Must happen before the population is created: the first genomes'
+    # random weights already come from `random`.
+    random.seed(SEED)
 
     config = neat.Config(
         neat.DefaultGenome, neat.DefaultReproduction,
         neat.DefaultSpeciesSet, neat.DefaultStagnation,
-        ARQ_CONFIG,
+        CONFIG_FILE,
     )
-    populacao = neat.Population(config)
-    populacao.add_reporter(neat.StdOutReporter(False))
-    registrador = Registrador()
-    populacao.add_reporter(registrador)
+    population = neat.Population(config)
+    population.add_reporter(neat.StdOutReporter(False))
+    recorder = Recorder()
+    population.add_reporter(recorder)
 
-    treinador = Treinador(mostrar=not args.rapido)
+    trainer = Trainer(show=not args.fast)
     try:
-        populacao.run(treinador.avaliar_genomas, args.geracoes)
-    except TreinoInterrompido:
-        print("\nTreino interrompido — salvando o que já foi registrado.")
+        population.run(trainer.eval_genomes, args.generations)
+    except TrainingInterrupted:
+        print("\nTraining interrupted — saving what has been recorded so far.")
 
-    if not registrador.geracoes:
-        print("Nenhuma geração completa para salvar.")
+    if not recorder.generations:
+        print("No complete generation to save.")
         return
-    registrador.salvar(ARQ_CONFIG)
+    recorder.save(CONFIG_FILE)
 
-    ultima = registrador.geracoes[-1]
-    print("\n=== Treino concluído ===")
-    print(f"Gerações:          {len(registrador.geracoes)}")
-    print(f"Melhor na última:  {ultima['melhor']}   média: {ultima['media']}")
-    print(f"Histórico salvo:   {ARQ_HISTORICO}")
-    print("Próximos passos:")
-    print("  Gráficos + RELATORIO.md:")
-    print("    python licoes/03-neuroevolucao/relatorio.py")
-    print("  Campeão final jogando:")
-    print("    python licoes/03-neuroevolucao/assistir.py")
-    print("  Compare com o campeão da geração 0:")
-    print("    python licoes/03-neuroevolucao/assistir.py --geracao 0")
+    last = recorder.generations[-1]
+    print("\n=== Training finished ===")
+    print(f"Generations:       {len(recorder.generations)}")
+    print(f"Best in the last:  {last['best']}   average: {last['average']}")
+    print(f"History saved to:  {HISTORY_FILE}")
+    print("Next steps:")
+    print("  Charts + REPORT.md:")
+    print("    python lessons/03-neuroevolution/report.py")
+    print("  Final champion playing:")
+    print("    python lessons/03-neuroevolution/watch.py")
+    print("  Compare with the champion of generation 0:")
+    print("    python lessons/03-neuroevolution/watch.py --generation 0")
 
-    if treinador.mostrar:
+    if trainer.show:
         pygame.quit()
 
 
