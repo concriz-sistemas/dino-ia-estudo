@@ -221,4 +221,4 @@ Y esta lección es solo la primera etapa de un LLM, el **preentrenamiento**. Des
 4. Pon `LAYERS = 1`. ¿Alcanza con un bloque?
 5. Ejecuta `generate.py --prompt "the gradient "` con temperaturas 0.3 y 1.5 (usa `--temperature`). ¿Cuál suena más al estudio?
 
-**Lección anterior:** [aprender a ver](../06-vision/README.es.md) · **Inicio del estudio:** [todas las lecciones](../../README.es.md)
+**Lección anterior:** [aprender a ver](../06-vision/README.es.md) · **Inicio del estudio:** [todas las lecciones](../../README.es.md) · **Siguiente lección:** [modo difícil](../08-hard-mode/README.es.md)

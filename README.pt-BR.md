@@ -21,6 +21,7 @@ Cada lição é uma pasta com um **README explicando os conceitos**, um **script
 | 5 | [Imitação](lessons/05-imitation/README.pt-BR.md) | Você joga e uma rede aprende a copiar você, ou copia o agente da lição 4. Aprendizado supervisionado a partir de demonstrações, e por que os LLMs imitam antes de usar reforço | ~2 s para treinar |
 | 6 | [Aprender a enxergar](lessons/06-vision/README.pt-BR.md) | Uma rede convolucional (CNN) lê a tela em vez dos 6 números: filtros, camadas, e por que uma rede falha em cenas que nunca viu (o DAgger corrige) | ~20 min para treinar; olhos treinados incluídos |
 | 7 | [Um mini modelo de linguagem](lessons/07-language-model/README.pt-BR.md) | Um *transformer* minúsculo, a arquitetura de um LLM, aprende a escrever prevendo o próximo caractere: tokens, atenção, temperatura, *embeddings* e similaridade de cosseno de verdade, e decorar × aprender | ~30 s para treinar |
+| 8 | [Modo difícil: quando o mundo muda](lessons/08-hard-mode/README.pt-BR.md) | Um jogo mais difícil, com formações de pássaros. Os agentes antigos falham, só o reforço não aprende, um planejador resolve, e um aluno que imita um treinador aprende (e quase esquece o jogo antigo) | ~1 min para assistir; experimentos de 5 a 20 min |
 
 Dúvidas comuns, como "alguém ensina a regra?" e "onde fica guardado o aprendizado?", estão em [Perguntas que aparecem pelo caminho](#perguntas-que-aparecem-pelo-caminho).
 
@@ -196,6 +197,18 @@ python lessons/07-language-model/generate.py
 
 [Lição 7](lessons/07-language-model/README.pt-BR.md).
 
+### Passo 8: modo difícil, quando o mundo muda
+
+```bash
+python lessons/08-hard-mode/watch.py
+```
+
+Um jogo mais difícil, com túneis e escadinhas de pássaros que só se passam abaixando. Todos os agentes treinados no jogo original falham. Só o reforço não consegue aprender o jogo novo, nem com currículo nem com mais exploração; um planejador que faz buscas resolve, mas é lento; e um aluno que imita um treinador aprende, com 5000 nos dois jogos.
+
+![o agente da lição 4 e o aluno da lição 8 na mesma partida](lessons/08-hard-mode/results/before_after.gif)
+
+[Lição 8](lessons/08-hard-mode/README.pt-BR.md).
+
 ### Gravando as animações
 
 Os GIFs desta página são gerados pelos próprios scripts:
@@ -264,16 +277,33 @@ dino-ai-study/
     │   ├── pixels_to_keys.py         # a outra abordagem: dos pixels direto para as teclas
     │   ├── watch.py                  # olhos + cérebro jogando, com o que os olhos veem
     │   └── results/eyes.pt           # os olhos treinados
-    └── 07-language-model/
+    ├── 07-language-model/
+    │   ├── README.md
+    │   ├── tiny_lm.py                # o texto, o bigrama e o transformer minúsculo
+    │   ├── train.py                  # treina e guarda o melhor modelo em texto novo
+    │   ├── generate.py               # faz o modelo escrever, com temperatura
+    │   ├── inside.py                 # embeddings, similaridade de cosseno e atenção
+    │   └── data/study.txt            # o texto de treino: os READMEs deste estudo
+    └── 08-hard-mode/
         ├── README.md
-        ├── tiny_lm.py                # o texto, o bigrama e o transformer minúsculo
-        ├── train.py                  # treina e guarda o melhor modelo em texto novo
-        ├── generate.py               # faz o modelo escrever, com temperatura
-        ├── inside.py                 # embeddings, similaridade de cosseno e atenção
-        └── data/study.txt            # o texto de treino: os READMEs deste estudo
+        ├── hard_game.py              # o jogo difícil (o original continua igual)
+        ├── planner.py                # um planejador que faz buscas, sem aprender
+        ├── test_agents.py            # todos os agentes do estudo nos dois jogos
+        ├── rl_attempts.py            # quatro tentativas com aprendizado por reforço
+        ├── train_student.py          # um aluno que imita um treinador, com DAgger
+        └── watch.py                  # o agente da lição 4 e o aluno na mesma partida
 ```
 
 Cada README existe em três versões: `README.md` (inglês), `README.pt-BR.md` (português) e `README.es.md` (espanhol).
+
+---
+
+## Aprofundamentos
+
+Páginas mais calmas e visuais sobre assuntos que aparecem pelo caminho:
+
+- [Peso, viés, ativação e perda](lessons/01-neuron-and-gradient/concepts/README.pt-BR.md): cada ideia com uma analogia do dia a dia, um gráfico, uma animação e um exemplo pequeno calculado à mão.
+- [Por que GPUs?](deep-dives/gpu/README.pt-BR.md): o que uma rede neural calcula de fato, CPU × GPU medidos num Mac, e quanto processamento cada lição (e um LLM grande) precisa.
 
 ---
 

@@ -220,4 +220,4 @@ And this lesson is only the first stage of an LLM, **pre-training**. After it, r
 4. Set `LAYERS = 1`. Is one block enough?
 5. Run `generate.py --prompt "the gradient "` at temperatures 0.3 and 1.5 (use `--temperature`). Which one sounds more like the study?
 
-**Previous lesson:** [learning to see](../06-vision/README.md) · **Study home:** [all lessons](../../README.md)
+**Previous lesson:** [learning to see](../06-vision/README.md) · **Study home:** [all lessons](../../README.md) · **Next lesson:** [hard mode](../08-hard-mode/README.md)
