@@ -85,15 +85,17 @@ def main():
     if len(set(match)) > 1:
         val = match == match.max()
         X_train, y_train, X_val, y_val = X[~val], y[~val], X[val], y[val]
+        aside = "the match kept aside"
     else:
         cut = int(len(y) * 0.8)
         X_train, y_train, X_val, y_val = X[:cut], y[:cut], X[cut:], y[cut:]
+        aside = "the last 20% of the match, kept aside"
 
     print("\nTraining the student (6 -> 16 -> 3)...")
     student = Student()
     history = np.array(student.train(X_train, y_train, X_val=X_val, y_val=y_val), dtype=float)
     print(f"Accuracy: {history[-1, 2]:.1%} on the training examples, "
-          f"{history[-1, 3]:.1%} on the match kept aside")
+          f"{history[-1, 3]:.1%} on {aside}")
 
     print(f"\nThe student plays {N_TEST_MATCHES} new matches on its own:")
     scores = [play(student, seed=5000 + s) for s in range(N_TEST_MATCHES)]
@@ -120,7 +122,7 @@ def main():
     axs[0].plot(history[:, 0], history[:, 1], c="#1c7ed6")
     axs[0].set_title("Loss (how far the student is from the teacher)")
     axs[1].plot(history[:, 0], history[:, 2] * 100, c="#2f9e44", label="training examples")
-    axs[1].plot(history[:, 0], history[:, 3] * 100, c="#e8590c", label="match kept aside")
+    axs[1].plot(history[:, 0], history[:, 3] * 100, c="#e8590c", label=aside)
     axs[1].axhline(trap * 100, c="k", ls="--", lw=1, label=f"'always {ACTION_NAMES[counts.argmax()]}'")
     axs[1].set_title("Accuracy: how often the student presses what the teacher pressed")
     axs[1].set_ylim(0, 100)
