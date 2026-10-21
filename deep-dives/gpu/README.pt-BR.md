@@ -11,6 +11,12 @@ Para repetir a medição no seu próprio computador (cerca de 1 minuto):
 python deep-dives/gpu/benchmark.py
 ```
 
+Depois, para redesenhar os gráficos que transformam os números em tempo (alguns segundos):
+
+```bash
+python deep-dives/gpu/scale.py
+```
+
 ---
 
 ## 1. O que uma rede neural calcula de verdade
@@ -40,11 +46,17 @@ Treinar custa cerca de 3 vezes mais do que só usar a rede, porque o passo para 
 
 Para preparar um prato elaborado, os chefs ganham. Para picar 69 bilhões de cebolas, os ajudantes ganham, desde que haja cebola suficiente para manter todos ocupados.
 
+![poucos chefs vs muitos ajudantes](charts/fill.gif)
+
+*Preenchendo a tabela de resultado de uma multiplicação de matrizes. Cada célula é uma linha vezes uma coluna, e nenhuma célula precisa esperar outra ficar pronta. Com 4 trabalhadores, 256 células levam 64 passos; com 64 trabalhadores, 4 passos. Um ajudante sozinho é mais lento do que um chef, mas eles são tantos que, numa tabela grande o bastante, ganham.*
+
 Multiplicação de matrizes é picar cebola: bilhões de "multiplica e soma" idênticos e independentes. É por isso que as GPUs, projetadas para calcular milhões de pixels ao mesmo tempo nos jogos, se revelaram perfeitas para redes neurais.
 
 ---
 
 ## 3. Medido neste Mac
+
+A máquina: um **Mac mini com chip Apple M4** (10 núcleos, sendo 4 de alto desempenho) e 24 GB de memória.
 
 ![velocidade](charts/02_speed.png)
 
@@ -83,9 +95,32 @@ Contando os "multiplica e soma" de cada treino (um "multiplica e soma" = 2 opera
 
 A regra "6 × pesos × tokens" é um jeito comum de estimar o custo de treinar um modelo de linguagem: 2 operações por peso para cada token lido, vezes 3 para o treino. A linha do LLM grande usa tamanhos parecidos com os publicados para modelos abertos com 70 bilhões de pesos.
 
-**Quanto tempo esse LLM levaria neste Mac?** Na sua velocidade máxima (3,3 trilhões por segundo), cerca de **60.000 anos**.
+Números tão grandes são difíceis de imaginar, então aqui estão eles como tempo. Primeiro, **se uma pessoa fizesse à mão**, um "multiplica e soma" por segundo, sem nunca parar:
 
-**E num centro de dados?** Uma única GPU atual de centro de dados faz da ordem de mil trilhões de operações por segundo (10¹⁵) nos formatos de número usados no treino, embora na prática ela rode bem abaixo do seu pico. Mesmo assim, uma GPU dessas precisaria de centenas de anos. Por isso os modelos grandes são treinados em **milhares de GPUs ao mesmo tempo**, durante semanas ou meses. Esse é o verdadeiro motivo de treinar um LLM ser tão caro: não é um cálculo difícil, e sim um número astronômico de cálculos fáceis.
+![à mão](charts/04_by_hand.png)
+
+Até os 25 pesos da lição 1 levariam cerca de **4 anos** para uma pessoa. O transformer minúsculo da lição 7, cerca de **87.000 anos**.
+
+E em máquinas de verdade, nas melhores velocidades medidas acima:
+
+| Treino | CPU deste Mac | GPU deste Mac |
+|---|---|---|
+| Lição 1 | menos de um milissegundo | menos de um milissegundo |
+| Lição 4 | 0,18 segundos | 0,1 segundos |
+| Lição 7 | 3 segundos | 1,7 segundos |
+| Lição 6 | 41 segundos | 23 segundos |
+
+Esses são tempos *ideais*, em velocidade máxima o tempo todo. Os treinos reais levaram mais (a lição 7 levou cerca de 26 segundos; a lição 6, cerca de 22 minutos, porque também joga o jogo e seus lotes são pequenos). O que importa é a ordem de grandeza.
+
+Agora o LLM grande, numa única escala compartilhada:
+
+![quanto tempo](charts/05_how_long.png)
+
+- Na GPU deste Mac: cerca de **60.000 anos**.
+- Numa GPU atual de centro de dados: elas fazem da ordem de mil trilhões de operações por segundo (10¹⁵) nos formatos de número usados no treino, mas na prática rodam bem abaixo do seu pico; supondo 40% dele, cerca de **500 anos**.
+- Em **10.000 delas ao mesmo tempo**: cerca de **18 dias**.
+
+É por isso que os modelos grandes são treinados em **milhares de GPUs ao mesmo tempo**, durante semanas ou meses, e por isso custa tanto: não é um cálculo difícil, e sim um número astronômico de cálculos fáceis.
 
 ---
 

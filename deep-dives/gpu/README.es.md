@@ -11,6 +11,12 @@ Para repetir la medición en tu propia computadora (alrededor de 1 minuto):
 python deep-dives/gpu/benchmark.py
 ```
 
+Después, para volver a dibujar las gráficas que convierten los números en tiempo (unos segundos):
+
+```bash
+python deep-dives/gpu/scale.py
+```
+
 ---
 
 ## 1. Qué calcula realmente una red neuronal
@@ -40,11 +46,17 @@ Entrenar cuesta unas 3 veces más que solo usar la red, porque el paso hacia atr
 
 Para cocinar un platillo elaborado, ganan los chefs. Para picar 69 mil millones de cebollas, ganan los ayudantes, siempre que haya suficientes cebollas para mantenerlos a todos ocupados.
 
+![unos pocos chefs vs muchos ayudantes](charts/fill.gif)
+
+*Llenando la tabla de resultados de una multiplicación de matrices. Cada celda es una fila por una columna, y ninguna celda necesita que otra esté lista antes. Con 4 trabajadores, 256 celdas toman 64 pasos; con 64 trabajadores, 4 pasos. Un solo ayudante es más lento que un chef, pero son tantos que, con una tabla lo bastante grande, ganan.*
+
 La multiplicación de matrices es picar cebollas: miles de millones de "multiplica y suma" idénticos e independientes. Por eso las GPU, diseñadas para calcular millones de píxeles al mismo tiempo en los videojuegos, resultaron perfectas para las redes neuronales.
 
 ---
 
 ## 3. Medido en esta Mac
+
+La máquina: una **Mac mini con chip Apple M4** (10 núcleos, 4 de ellos de alto rendimiento) y 24 GB de memoria.
 
 ![velocidad](charts/02_speed.png)
 
@@ -83,9 +95,32 @@ Contando los "multiplica y suma" de cada entrenamiento (un "multiplica y suma" =
 
 La regla "6 × pesos × tokens" es una forma común de estimar el costo de entrenar un modelo de lenguaje: 2 operaciones por peso por cada token leído, por 3 para el entrenamiento. La fila del LLM grande usa tamaños parecidos a los publicados para modelos abiertos con 70 mil millones de pesos.
 
-**¿Cuánto tardaría ese LLM en esta Mac?** A su máxima velocidad (3.3 billones por segundo), unos **60 000 años**.
+Números tan grandes son difíciles de imaginar, así que aquí están como tiempo. Primero, **si una persona lo hiciera a mano**, un "multiplica y suma" por segundo, sin detenerse nunca:
 
-**¿Y en un centro de datos?** Una sola GPU actual de centro de datos hace del orden de mil billones de operaciones por segundo (10¹⁵) en los formatos numéricos que se usan para entrenar, aunque en la práctica funciona muy por debajo de su máximo. Aun así, una sola GPU de esas necesitaría cientos de años. Por eso los modelos grandes se entrenan en **miles de GPU a la vez**, durante semanas o meses. Esa es la verdadera razón por la que entrenar un LLM es tan caro: no es un cálculo difícil, sino una cantidad astronómica de cálculos fáciles.
+![a mano](charts/04_by_hand.png)
+
+Incluso los 25 pesos de la lección 1 le tomarían a una persona unos **4 años**. El transformer diminuto de la lección 7, unos **87 000 años**.
+
+Y en máquinas reales, a las mejores velocidades medidas arriba:
+
+| Entrenamiento | CPU de esta Mac | GPU de esta Mac |
+|---|---|---|
+| Lección 1 | menos de un milisegundo | menos de un milisegundo |
+| Lección 4 | 0.18 segundos | 0.1 segundos |
+| Lección 7 | 3 segundos | 1.7 segundos |
+| Lección 6 | 41 segundos | 23 segundos |
+
+Estos son tiempos *ideales*, a máxima velocidad todo el tiempo. Los entrenamientos reales tardaron más (la lección 7 tardó unos 26 segundos; la lección 6, unos 22 minutos, porque también juega el juego y sus lotes son pequeños). Lo que importa es el orden de magnitud.
+
+Ahora el LLM grande, en una misma escala:
+
+![cuánto tiempo](charts/05_how_long.png)
+
+- En la GPU de esta Mac: unos **60 000 años**.
+- En una GPU actual de centro de datos: estas hacen del orden de mil billones de operaciones por segundo (10¹⁵) en los formatos numéricos que se usan para entrenar, pero en la práctica funcionan muy por debajo de su máximo; suponiendo un 40 % de él, unos **500 años**.
+- En **10 000 de ellas a la vez**: unos **18 días**.
+
+Por eso los modelos grandes se entrenan en **miles de GPU a la vez**, durante semanas o meses, y por eso cuesta tanto: no es un cálculo difícil, sino una cantidad astronómica de cálculos fáciles.
 
 ---
 

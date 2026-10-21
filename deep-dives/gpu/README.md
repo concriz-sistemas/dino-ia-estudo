@@ -11,6 +11,12 @@ To repeat the measurement on your own computer (about 1 minute):
 python deep-dives/gpu/benchmark.py
 ```
 
+Then, to redraw the charts that turn the numbers into time (a few seconds):
+
+```bash
+python deep-dives/gpu/scale.py
+```
+
 ---
 
 ## 1. What a neural network actually computes
@@ -40,11 +46,17 @@ Training costs about 3 times as much as just using the network, because the back
 
 To cook one elaborate dish, the chefs win. To chop 69 billion onions, the helpers win, as long as you have enough onions to keep them all busy.
 
+![a few chefs vs many helpers](charts/fill.gif)
+
+*Filling the result table of a matrix multiplication. Each cell is one row times one column, and no cell needs another one to be ready first. With 4 workers, 256 cells take 64 steps; with 64 workers, 4 steps. A single helper is slower than a chef, but there are so many of them that, on a big enough table, they win.*
+
 Matrix multiplication is chopping onions: billions of identical, independent multiply-adds. That's why GPUs, designed to compute millions of pixels at the same time for games, turned out to be perfect for neural networks.
 
 ---
 
 ## 3. Measured on this Mac
+
+The machine: a **Mac mini with an Apple M4 chip** (10 cores, 4 of them high-performance) and 24 GB of memory.
 
 ![speed](charts/02_speed.png)
 
@@ -83,9 +95,32 @@ Counting the multiply-adds of each training run (one multiply-add = 2 operations
 
 The "6 × weights × tokens" rule is a common way to estimate the cost of training a language model: 2 operations per weight for each token read, times 3 for training. The large LLM line uses sizes like those published for open models with 70 billion weights.
 
-**How long would that LLM take on this Mac?** At its best speed (3.3 trillion per second), about **60,000 years**.
+Numbers this big are hard to picture, so here they are as time. First, **if a person did it by hand**, one multiply-add per second, without ever stopping:
 
-**And in a data center?** A single current data-center GPU does on the order of a thousand trillion operations per second (10¹⁵) in the number formats used for training, though in practice it runs at well under its peak. Even then, one such GPU would need hundreds of years. So big models are trained on **thousands of GPUs at once**, for weeks or months. That's the real reason training an LLM is so expensive: not one hard calculation, but an astronomical number of easy ones.
+![by hand](charts/04_by_hand.png)
+
+Even the 25 weights of lesson 1 would take a person about **4 years**. Lesson 7's tiny transformer, about **87,000 years**.
+
+And on real machines, at the best speeds measured above:
+
+| Training | This Mac's CPU | This Mac's GPU |
+|---|---|---|
+| Lesson 1 | under a millisecond | under a millisecond |
+| Lesson 4 | 0.18 seconds | 0.1 seconds |
+| Lesson 7 | 3 seconds | 1.7 seconds |
+| Lesson 6 | 41 seconds | 23 seconds |
+
+These are *ideal* times, at full speed all the time. The real trainings took longer (lesson 7 took about 26 seconds; lesson 6, about 22 minutes, because it also plays the game and its batches are small). The order of size is what matters.
+
+Now the large LLM, on one shared scale:
+
+![how long](charts/05_how_long.png)
+
+- On this Mac's GPU: about **60,000 years**.
+- On one current data-center GPU: these do on the order of a thousand trillion operations per second (10¹⁵) in the number formats used for training, but in practice they run well below their peak; assuming 40% of it, about **500 years**.
+- On **10,000 of them at once**: about **18 days**.
+
+That's why big models are trained on **thousands of GPUs at once**, for weeks or months, and why it costs so much: not one hard calculation, but an astronomical number of easy ones.
 
 ---
 
