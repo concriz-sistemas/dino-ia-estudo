@@ -1,259 +1,261 @@
-# 🦖 Dino IA — aprendendo redes neurais passo a passo
+**English** · [Português](README.pt-BR.md) · [Español](README.es.md)
 
-Um curso prático e em português: do primeiro neurônio escrito à mão até uma população de dinossauros que aprende sozinha a jogar o jogo do dinossauro do Chrome.
+# 🦖 Dino AI — learning neural networks step by step
 
-Cada lição é uma pasta com um **README explicando os conceitos**, um **script curto e comentado** e os **gráficos gerados** pelo próprio script, para você ver o aprendizado acontecendo.
+A hands-on study: from the first neuron written by hand to a population of dinosaurs that teaches itself to play Chrome's offline dinosaur game.
 
-![campeões de várias gerações](licoes/03-neuroevolucao/resultados/campeoes.gif)
+Each lesson is a folder with a **README explaining the concepts**, a **short, commented script** and the **charts the script generates**, so you can watch the learning happen.
+
+![champions of several generations](lessons/03-neuroevolution/results/champions.gif)
 
 ---
 
-## Roteiro
+## Roadmap
 
-| # | Lição | O que você aprende | Tempo para rodar |
+| # | Lesson | What you learn | Time to run |
 |---|---|---|---|
-| 1 | [Neurônio e gradiente](licoes/01-neuronio-e-gradiente/README.md) | Peso, viés, ativação, perda, **gradiente**, retropropagação, hiperparâmetros, overfitting — tudo do zero com numpy | ~5 s |
-| 2 | [O ambiente](licoes/02-o-ambiente/README.md) | O jogo em pygame, o que a IA "vê" (sensores), ações e recompensa | você joga |
-| 3 | [Neuroevolução (NEAT)](licoes/03-neuroevolucao/README.md) | Treinar **sem gradiente**, por seleção e mutação. Registro de cada geração, gráficos dos pesos e relatório automático | ~10 s sem janela |
-| 4 | [Aprendizado por reforço (PPO)](licoes/04-reforco/README.md) | Um dino aprende por gradiente a partir de recompensas: ator, crítico, vantagem, clip. Onde fica guardado o aprendizado e a ligação com o ajuste de LLMs | ~2 min sem janela |
+| 1 | [Neuron and gradient](lessons/01-neuron-and-gradient/README.md) | Weight, bias, activation, loss, **gradient**, backpropagation, hyperparameters, overfitting — all from scratch with numpy | ~5 s |
+| 2 | [The environment](lessons/02-the-environment/README.md) | The game in pygame, what the AI "sees" (sensors), actions and reward | you play |
+| 3 | [Neuroevolution (NEAT)](lessons/03-neuroevolution/README.md) | Training **without a gradient**, by selection and mutation. A record of every generation, weight charts and an automatic report | ~3 s without a window |
+| 4 | [Reinforcement learning (PPO)](lessons/04-reinforcement/README.md) | A dino learns by gradient from rewards: actor, critic, advantage, clip. Where the learning is stored, and the link to fine-tuning LLMs | ~2 min without a window |
 
-Dúvidas comuns, como "alguém ensina a regra?" e "onde fica guardado o aprendizado?", estão em [Perguntas que aparecem pelo caminho](#perguntas-que-aparecem-pelo-caminho).
+Common questions, such as "does anyone teach the AI the rule?" and "where is the learning stored?", are answered in [Questions that come up along the way](#questions-that-come-up-along-the-way).
 
 ---
 
-## Instalação
+## Installation
 
-Precisa de **Python 3.9+**.
+You need **Python 3.9+**.
 
-Copie e rode um comando de cada vez:
+Copy and run one command at a time:
 
 ```bash
-git clone https://github.com/concriz-sistemas/dino-ia-estudo.git
+git clone https://github.com/remofurlanetto/dino-ai-study.git
 ```
 
 ```bash
-cd dino-ia-estudo
+cd dino-ai-study
 ```
 
 ```bash
 python3 -m venv .venv
 ```
 
-Ative o ambiente. No Mac ou Linux:
+Activate the environment. On Mac or Linux:
 
 ```bash
 source .venv/bin/activate
 ```
 
-No Windows: `.venv\Scripts\activate`
+On Windows: `.venv\Scripts\activate`
 
 ```bash
 pip install -r requirements.txt
 ```
 
-**Todos os comandos rodam a partir da raiz do repositório**, por exemplo:
+**Every command runs from the repository root**, for example:
 
 ```bash
-python licoes/01-neuronio-e-gradiente/treinar_do_zero.py --ao-vivo
+python lessons/01-neuron-and-gradient/train_from_scratch.py --live
 ```
 
-Toda vez que abrir um terminal novo, rode `source .venv/bin/activate` antes, ou o Python não vai achar as bibliotecas.
+Every time you open a new terminal, run `source .venv/bin/activate` first, or Python won't find the libraries.
 
-## Passo a passo
+## Step by step
 
-Faça as lições na ordem. Cada passo tem um comando, o que você vai ver e o que aprende com ele. Antes de tudo, em cada terminal novo:
+Do the lessons in order. Each step has a command, what you will see and what you learn from it. First, in every new terminal:
 
 ```bash
 source .venv/bin/activate
 ```
 
-### Passo 1: uma rede neural aprendendo com gradiente
+### Step 1: a neural network learning with a gradient
 
 ```bash
-python licoes/01-neuronio-e-gradiente/treinar_do_zero.py --ao-vivo
+python lessons/01-neuron-and-gradient/train_from_scratch.py --live
 ```
 
-O terminal mostra as primeiras contas do gradiente, peso por peso. Depois abre o replay do treino:
+The terminal shows the first gradient calculations, weight by weight. Then the training replay opens:
 
-![replay da lição 1](licoes/01-neuronio-e-gradiente/resultados/treino.gif)
+![lesson 1 replay](lessons/01-neuron-and-gradient/results/training.gif)
 
-Teclas: **ESPAÇO** pausa, **← →** anda uma época, **↑ ↓** muda a velocidade, **R** recomeça.
+Keys: **SPACE** pauses, **← →** moves one epoch, **↑ ↓** changes the speed, **R** restarts.
 
-Repare que a faixa vermelha surge rápido e depois só fica mais nítida, enquanto as barras do gradiente encolhem. A explicação está em [Por que a forma aparece rápido e depois "para"?](licoes/01-neuronio-e-gradiente/README.md#por-que-a-forma-aparece-rápido-e-depois-para).
+Notice how the red band shows up quickly and then only gets sharper, while the gradient bars shrink. [Lesson 1](lessons/01-neuron-and-gradient/README.md) explains why.
 
-### Passo 2: o jogo que a IA vai jogar
+### Step 2: the game the AI will play
 
 ```bash
-python licoes/02-o-ambiente/jogar.py
+python lessons/02-the-environment/play.py
 ```
 
-Você joga (ESPAÇO pula, ↓ abaixa) e vê no canto os 6 números que a IA recebe no lugar dos olhos. [Lição 2](licoes/02-o-ambiente/README.md).
+You play (SPACE jumps, ↓ ducks) and see in the corner the 6 numbers the AI gets instead of eyes. [Lesson 2](lessons/02-the-environment/README.md).
 
-### Passo 3: 50 dinos evoluindo
+### Step 3: 50 dinos evolving
 
 ```bash
-python licoes/03-neuroevolucao/treinar.py
+python lessons/03-neuroevolution/train.py
 ```
 
-Cada geração, 50 dinos com redes diferentes jogam juntos; os melhores têm filhos com mutações. A tecla V acelera. Depois, gere os gráficos e o relatório:
+In each generation, 50 dinos with different networks play together; the best ones have children with mutations. The V key speeds it up. Then generate the charts and the report:
 
 ```bash
-python licoes/03-neuroevolucao/relatorio.py
+python lessons/03-neuroevolution/report.py
 ```
 
-E veja o campeão de cada geração jogando, com a rede desenhada ao lado (← → troca de geração):
+And watch the champion of each generation play, with its network drawn beside it (← → changes generation):
 
 ```bash
-python licoes/03-neuroevolucao/assistir.py
+python lessons/03-neuroevolution/watch.py
 ```
 
-![campeões de várias gerações](licoes/03-neuroevolucao/resultados/campeoes.gif)
+![champions of several generations](lessons/03-neuroevolution/results/champions.gif)
 
-[Lição 3](licoes/03-neuroevolucao/README.md).
+[Lesson 3](lessons/03-neuroevolution/README.md).
 
-### Passo 4: aprendizado por reforço
+### Step 4: reinforcement learning
 
 ```bash
-python licoes/04-reforco/treinar.py
+python lessons/04-reinforcement/train.py
 ```
 
-Um único dino joga milhares de partidas e ajusta os pesos por gradiente para ganhar mais recompensa (`+0.1` por quadro vivo, `−1` ao bater). Junta o gradiente do passo 1 com a nota do passo 3. Leva uns 2 minutos, sem janela. Depois, gere os gráficos:
+A single dino plays thousands of matches and adjusts its weights by gradient to earn more reward (`+0.1` per frame alive, `−1` when it crashes). It combines the gradient from step 1 with the score from step 3. It takes about 2 minutes, without a window. Then generate the charts:
 
 ```bash
-python licoes/04-reforco/relatorio.py
+python lessons/04-reinforcement/report.py
 ```
 
-E veja o dino jogando, com a chance de cada ação e o valor esperado ao lado (← → troca de modelo salvo):
+And watch the dino play, with the chance of each action and the expected value beside it (← → changes saved model):
 
 ```bash
-python licoes/04-reforco/assistir.py
+python lessons/04-reinforcement/watch.py
 ```
 
-![modelos da lição 4](licoes/04-reforco/resultados/modelos.gif)
+![lesson 4 models](lessons/04-reinforcement/results/models.gif)
 
-A lição também responde onde fica guardado o aprendizado (num arquivo de pesos, como um LLM) e mostra a ligação com o ajuste de LLMs. [Lição 4](licoes/04-reforco/README.md).
+The lesson also answers where the learning is stored (in a weights file, like an LLM) and shows the link to fine-tuning LLMs. [Lesson 4](lessons/04-reinforcement/README.md).
 
-### Gravando as animações
+### Recording the animations
 
-Os GIFs desta página são gerados pelos próprios scripts:
-
-```bash
-python licoes/01-neuronio-e-gradiente/treinar_do_zero.py --gif
-```
+The GIFs on this page are generated by the scripts themselves:
 
 ```bash
-python licoes/03-neuroevolucao/assistir.py --gif
+python lessons/01-neuron-and-gradient/train_from_scratch.py --gif
 ```
 
 ```bash
-python licoes/04-reforco/assistir.py --gif
+python lessons/03-neuroevolution/watch.py --gif
+```
+
+```bash
+python lessons/04-reinforcement/watch.py --gif
 ```
 
 ---
 
-## Estrutura
+## Structure
 
 ```
-dino-ia-estudo/
-├── dino/jogo.py                      # o jogo (usado nas lições 2, 3 e 4)
-├── dino/sprites.py                   # as figuras em pixel art, editáveis como texto
-└── licoes/
-    ├── 01-neuronio-e-gradiente/
-    │   ├── README.md                 # a teoria, com os gráficos
-    │   ├── treinar_do_zero.py        # rede neural só com numpy
-    │   └── resultados/               # gráficos + CSV com os pesos de cada época
-    ├── 02-o-ambiente/
+dino-ai-study/
+├── dino/game.py                      # the game (used in lessons 2, 3 and 4)
+├── dino/sprites.py                   # the pixel art figures, editable as text
+└── lessons/
+    ├── 01-neuron-and-gradient/
+    │   ├── README.md                 # the theory, with the charts
+    │   ├── train_from_scratch.py     # a neural network with numpy only
+    │   └── results/                  # charts + CSV with the weights at every epoch
+    ├── 02-the-environment/
     │   ├── README.md
-    │   └── jogar.py                  # você joga e vê os sensores da IA
-    ├── 03-neuroevolucao/
+    │   └── play.py                   # you play and see the AI's sensors
+    ├── 03-neuroevolution/
     │   ├── README.md
-    │   ├── config-neat.txt           # os parâmetros da evolução, comentados
-    │   ├── treinar.py                # treina e registra cada geração
-    │   ├── relatorio.py              # gera gráficos + RELATORIO.md
-    │   ├── assistir.py               # vê o campeão de qualquer geração jogando
-    │   └── resultados/               # historico.json, gráficos, RELATORIO.md
-    └── 04-reforco/
+    │   ├── neat-config.txt           # the evolution parameters, commented
+    │   ├── train.py                  # trains and records every generation
+    │   ├── report.py                 # generates charts + REPORT.md
+    │   ├── watch.py                  # watch the champion of any generation play
+    │   └── results/                  # history.json, charts, REPORT.md
+    └── 04-reinforcement/
         ├── README.md
-        ├── ambiente.py               # o jogo no formato Gymnasium (observação, ação, recompensa)
-        ├── treinar.py                # treina com PPO e salva o modelo em vários momentos
-        ├── relatorio.py              # gráficos, mapa de decisão + RELATORIO.md
-        ├── assistir.py               # o dino jogando, com a cabeça dele ao lado
-        └── resultados/modelos/       # o aprendizado: arquivos com os pesos da rede
+        ├── environment.py            # the game in Gymnasium format (observation, action, reward)
+        ├── train.py                  # trains with PPO and saves the model at several points
+        ├── report.py                 # charts, decision map + REPORT.md
+        ├── watch.py                  # the dino playing, with its "mind" beside it
+        └── results/models/           # the learning: files with the network's weights
 ```
 
 ---
 
-## Glossário rápido
+## Quick glossary
 
-| Termo | Em uma frase |
+| Term | In one sentence |
 |---|---|
-| **Peso** | Número que diz o quanto uma entrada importa para um neurônio. É o que se ajusta no treino. |
-| **Viés (bias)** | Número somado ao neurônio, que desloca o ponto em que ele "liga". |
-| **Ativação** | Curva aplicada ao neurônio (tanh, sigmoide...). Sem ela, a rede só faria retas. |
-| **Perda (loss)** | Número que mede o quanto a rede erra. O treino tenta diminuí-lo. |
-| **Gradiente** | Para cada peso: para que lado e quanto mexer para diminuir a perda. |
-| **Retropropagação** | O jeito eficiente de calcular o gradiente, da saída para a entrada. |
-| **Taxa de aprendizado** | Tamanho do passo dado na direção do gradiente. |
-| **Época** | Uma passada por todos os exemplos de treino. |
-| **Hiperparâmetro** | Regulagem escolhida por você, não aprendida (taxa, tamanho da rede...). |
-| **Overfitting** | Decorar os exemplos de treino em vez de aprender o padrão geral. |
-| **Fitness / recompensa** | A nota de quão bem a IA foi no ambiente. |
-| **Geração** | Uma rodada da evolução: todos jogam, os melhores se reproduzem. |
-| **Mutação** | Mudança aleatória num peso ou na estrutura da rede. |
-| **Espécie** | Grupo de redes parecidas que competem entre si no NEAT. |
+| **Weight** | A number that says how much an input matters to a neuron. It is what training adjusts. |
+| **Bias** | A number added to the neuron, which shifts the point where it "turns on". |
+| **Activation** | A curve applied to the neuron (tanh, sigmoid...). Without it, the network could only draw straight lines. |
+| **Loss** | A number that measures how wrong the network is. Training tries to lower it. |
+| **Gradient** | For each weight: which way and how much to move it to lower the loss. |
+| **Backpropagation** | The efficient way to compute the gradient, from the output back to the input. |
+| **Learning rate** | The size of the step taken along the gradient. |
+| **Epoch** | One pass through all the training examples. |
+| **Hyperparameter** | A setting you choose instead of one that is learned (learning rate, network size...). |
+| **Overfitting** | Memorizing the training examples instead of learning the general pattern. |
+| **Fitness / reward** | The score for how well the AI did in the environment. |
+| **Generation** | One round of evolution: everyone plays, the best ones reproduce. |
+| **Mutation** | A random change in a weight or in the structure of the network. |
+| **Species** | A group of similar networks that compete with each other in NEAT. |
 
 ---
 
-## Perguntas que aparecem pelo caminho
+## Questions that come up along the way
 
-**Alguém ensina a regra para a IA?**
-Não. Em nenhuma lição a IA recebe a regra "pule quando o cacto estiver perto". Na lição 1, a regra existe no código só para gerar 600 exemplos já respondidos, e a rede aprende com os exemplos sem nunca ver a regra. Nas lições 3 e 4 nem isso: a IA só recebe uma nota ou uma recompensa, que diz se deu certo, nunca como fazer.
+**Does anyone teach the AI the rule?**
+No. In no lesson does the AI receive the rule "jump when the cactus is close". In lesson 1, the rule exists in the code only to generate 600 already-answered examples, and the network learns from the examples without ever seeing the rule. In lessons 3 and 4 not even that: the AI only gets a score or a reward, which says whether it worked, never how to do it.
 
-**O dino aprende sozinho a enxergar onde estão os obstáculos?**
-Não, e isso é proposital. Em nenhuma lição o dino vê a tela. O código do jogo mede tudo e entrega 6 números prontos: distância, largura, altura e elevação do próximo obstáculo, a altura do dino e a velocidade. É como dar a ele um sensor de distância em vez de olhos. O que ele aprende sozinho é **o que fazer** com esses números: quando pular, quando abaixar, quando esperar. Aprender a enxergar a partir dos pixels da tela, como a DeepMind fez com jogos de Atari, exige uma rede convolucional e muito mais treino. É o próximo nível deste curso.
+**Does the dino learn by itself to see where the obstacles are?**
+No, and that is on purpose. In no lesson does the dino see the screen. The game code measures everything and hands over 6 ready-made numbers: the distance, width, height and elevation of the next obstacle, the dino's height and the speed. It is like giving it a distance sensor instead of eyes. What it learns by itself is **what to do** with those numbers: when to jump, when to duck, when to wait. Learning to see from the screen's pixels, as DeepMind did with Atari games, requires a convolutional network and much more training. That is the next level for this study.
 
-**E a lição 1, então?**
-A lição 1 nem tem dino jogando. É um exercício com exemplos prontos (o *gabarito*, os pontos dos gráficos) para ver o gradiente funcionando de perto. Quem aprende de verdade a jogar, sem ninguém saber a resposta, são os dinos das lições 3 e 4.
+**What about lesson 1, then?**
+Lesson 1 has no dino playing at all. It is an exercise with ready-made examples (the *answer key*, the dots in the charts) to watch the gradient work up close. The ones that really learn to play, with nobody knowing the answer, are the dinos of lessons 3 and 4.
 
-**Então o aprendizado é aleatório?**
-Só em parte. Os pesos começam sorteados em todas as lições. Na lição 1 e na 4, daí em diante o gradiente calcula para que lado mexer cada peso, sem sorteio. Na lição 3, as mutações são sorteadas, mas a seleção não: os dinos que vão mais longe têm filhos. O acaso propõe e a nota escolhe. Por isso cada treino dá números diferentes, mas a regra principal ("longe = não pule") sempre aparece.
+**So is the learning random?**
+Only partly. The weights start out random in every lesson. In lessons 1 and 4, from then on the gradient computes which way to move each weight, with no dice involved. In lesson 3, the mutations are random, but the selection is not: the dinos that get further have children. Chance proposes and the score decides. That is why each seed gives different numbers, but the main rule ("far = don't jump") always shows up.
 
-**Por que no replay a forma aparece rápido e depois quase não muda?**
-No começo a rede erra muito, o gradiente é grande e cada passo mexe bastante nos pesos. Perto do fundo do "vale" da perda, o gradiente fica minúsculo (de ~1 para ~0,002 na lição 1) e os pesos quase param. Isso se chama convergência. [Explicação completa na lição 1](licoes/01-neuronio-e-gradiente/README.md#por-que-a-forma-aparece-rápido-e-depois-para), incluindo a ligação com regressão linear.
+**Why does the shape in the replay appear quickly and then barely change?**
+At first the network is very wrong, the gradient is large and each step moves the weights a lot. Near the bottom of the loss "valley", the gradient becomes tiny (from ~1 to ~0.002 in lesson 1) and the weights almost stop. This is called convergence. [Lesson 1](lessons/01-neuron-and-gradient/README.md) has the full explanation, including the link to linear regression.
 
-**Por que o treino da lição 4 fica parado e depois dá um salto?**
-Por uns 600 mil passos, o dino fica preso em "pular sem parar", que rende uns 150 pontos e é difícil de largar (um *ótimo local*). Quando descobre que esperar o cacto chegar perto rende muito mais, a média dispara para perto de 5000. Nos primeiros testes, sem ajustes, ele não saiu do platô em 500 mil passos e, com 2 milhões, só saiu perto do fim. O que adiantou o salto foi fazer cada ação valer 2 quadros e dar mais bônus para explorar.
+**Why does lesson 4's training stall and then jump?**
+For about 600 thousand steps, the dino is stuck on "jump nonstop", which earns about 150 points and is hard to give up (a *local optimum*). When it discovers that waiting for the cactus to come close pays much more, the average shoots up to almost 5000. In the first tests, without tweaks, it did not leave the plateau within 500 thousand steps, and with 2 million it only left near the end. What brought the jump forward was making each action last 2 frames and giving a bigger bonus for exploring.
 
-**A IA faz o que um humano faria?**
-Nem sempre. Diante de um pássaro na altura da cabeça, o dino da lição 4 fica abaixado enquanto o pássaro está longe e pula por cima quando ele chega perto. Ninguém ensinou isso, e funciona. A recompensa premia o resultado, não o jeito.
+**Does the AI do what a human would?**
+Not always. Facing a bird at head height, lesson 4's dino stays ducked while the bird is far away and jumps over it when it gets close. Nobody taught it that, and it works. The reward pays for the result, not for the method.
 
-**Por que o dino joga melhor no teste do que no treino?**
-No treino, o agente da lição 4 ainda sorteia ações para explorar, então às vezes erra de propósito. No teste ele sempre escolhe a ação mais provável. Por isso a média no treino fica em ~4.300, enquanto o modelo final fez 5000 em todas as 10 partidas novas.
+**Why does the dino play better in testing than in training?**
+During training, lesson 4's agent still picks random actions to explore, so sometimes it makes mistakes on purpose. In testing it always picks the most likely action. That is why the training average stays around 4,300, while the final model scored 5000 in all 10 new matches.
 
-**Depois de treinado, o aprendizado fica guardado?**
-Fica, num arquivo de pesos. O dino da lição 4 é o arquivo `licoes/04-reforco/resultados/modelos/ppo_02000k.zip`: 64 KB com 2.692 números. Carregar esse arquivo é ter o dino que sabe jogar, sem treinar de novo. Na lição 1, a última linha de `historico_pesos.csv` tem os pesos finais; na lição 3, o `campeoes.pkl` guarda o campeão de cada geração.
+**Once trained, is the learning stored somewhere?**
+Yes, in a weights file. Lesson 4's dino is the file `lessons/04-reinforcement/results/models/ppo_02000k.zip`: about 62 KB holding 2,692 numbers. Loading that file means having the dino that knows how to play, without training again. In lesson 1, the last row of `weight_history.csv` has the final weights; in lesson 3, `champions.pkl` stores the champion of each generation.
 
-**Isso é parecido com um LLM?**
-É a mesma ideia em escala gigante. Um LLM também é um arquivo de pesos, só que com bilhões de números e de alguns a centenas de gigabytes. E, como aqui, usar não muda o arquivo: rodar o `assistir.py` mil vezes não ensina nada ao dino, e um LLM não aprende enquanto conversa com você. Ele só muda quando um novo treino gera um novo arquivo, ou seja, uma nova versão do modelo.
-
----
-
-## E os LLMs (ChatGPT, Claude...)?
-
-Usam os mesmos blocos destas lições, em escala gigantesca:
-
-1. **Pré-treinamento** — o ciclo da **Lição 1** (forward, perda, gradiente, passo), com bilhões de pesos aprendendo a prever a próxima palavra em trilhões de textos.
-2. **Pós-treinamento** — o ciclo da **Lição 4** (agir, receber recompensa, ajustar por gradiente): o modelo gera respostas, recebe uma nota (de pessoas ou de testes automáticos) e é ajustado para tirar notas melhores.
-
-A neuroevolução da **Lição 3** não é usada para treinar LLMs (seria lenta demais com bilhões de pesos), mas é a forma mais visual de entender que **"aprender" é ajustar números até uma nota melhorar**.
+**Is this similar to an LLM?**
+It is the same idea at a gigantic scale. An LLM is also a weights file, only with billions of numbers and anywhere from a few to hundreds of gigabytes. And, as here, using it does not change the file: running `watch.py` a thousand times teaches the dino nothing, and an LLM does not learn while it talks with you. It only changes when a new training run produces a new file, that is, a new version of the model.
 
 ---
 
-## Bibliotecas usadas
+## What about LLMs (ChatGPT, Claude...)?
 
-- [numpy](https://numpy.org/) — contas com matrizes
-- [matplotlib](https://matplotlib.org/) — gráficos
-- [pygame](https://www.pygame.org/) — o jogo (janela, desenho, teclado)
-- [neat-python](https://github.com/CodeReclaimers/neat-python) — o algoritmo NEAT
-- [Gymnasium](https://gymnasium.farama.org/) — o formato padrão de ambientes de reforço
-- [Stable-Baselines3](https://stable-baselines3.readthedocs.io/) — o algoritmo PPO (usa o [PyTorch](https://pytorch.org/), que é um download grande)
+They use the same building blocks as these lessons, at a huge scale:
+
+1. **Pre-training** — the cycle of **Lesson 1** (forward, loss, gradient, step), with billions of weights learning to predict the next word in trillions of texts.
+2. **Post-training** — the cycle of **Lesson 4** (act, get a reward, adjust by gradient): the model generates answers, gets a score (from people or from automatic tests) and is adjusted to score better.
+
+The neuroevolution of **Lesson 3** is not used to train LLMs (it would be far too slow with billions of weights), but it is the most visual way to understand that **"learning" means adjusting numbers until a score improves**.
+
+---
+
+## Libraries used
+
+- [numpy](https://numpy.org/) — matrix math
+- [matplotlib](https://matplotlib.org/) — charts
+- [pygame](https://www.pygame.org/) — the game (window, drawing, keyboard)
+- [neat-python](https://github.com/CodeReclaimers/neat-python) — the NEAT algorithm
+- [Gymnasium](https://gymnasium.farama.org/) — the standard format for reinforcement learning environments
+- [Stable-Baselines3](https://stable-baselines3.readthedocs.io/) — the PPO algorithm (it uses [PyTorch](https://pytorch.org/), which is a large download)

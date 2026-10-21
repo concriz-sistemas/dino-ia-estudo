@@ -1,89 +1,90 @@
-# Lição 2 — O ambiente: o jogo que a IA vai jogar
+**English** · [Português](README.pt-BR.md) · [Español](README.es.md)
 
-> **Objetivo:** entender o "mundo" da IA — o que ela vê, o que ela pode fazer
-> e como sabemos se ela foi bem.
+# Lesson 2 — The environment: the game the AI will play
+
+> **Goal:** understand the AI's "world" — what it sees, what it can do
+> and how we know whether it did well.
 
 ```bash
-python licoes/02-o-ambiente/jogar.py
+python lessons/02-the-environment/play.py
 ```
 
-Jogue algumas partidas. No canto da tela aparecem os **6 números que a IA vai receber**. Repare como eles mudam quando um cacto se aproxima.
+Play a few rounds. In the corner of the screen, under "What the AI sees:", you'll find the **6 numbers the AI will receive**. Notice how they change when a cactus gets close.
 
 ---
 
-## O que é o pygame?
+## What is pygame?
 
-É uma biblioteca de **Python** para fazer jogos 2D. Ela abre uma janela, desenha retângulos e imagens, lê o teclado e controla o tempo (60 quadros por segundo). Instala com `pip install pygame`.
+It's a **Python** library for making 2D games. It opens a window, draws rectangles and images, reads the keyboard and controls time (60 frames per second). Install it with `pip install pygame`.
 
-Nosso jogo inteiro está em [`dino/jogo.py`](../../dino/jogo.py) — pouco mais de 200 linhas, todas comentadas.
+Our whole game is in [`dino/game.py`](../../dino/game.py) — a little over 200 lines, all commented.
 
 ---
 
-## O ciclo do jogo
+## The game loop
 
-Todo jogo (e todo ambiente de IA) é um laço que se repete:
+Every game (and every AI environment) is a loop that repeats:
 
 ```
 ┌──────────────────────────────────────────────┐
-│ 1. OBSERVAR   o estado atual  → sensores()   │
-│ 2. DECIDIR    uma ação        → humano ou IA │
-│ 3. AGIR       avançar um quadro → passo()    │
-│ 4. AVALIAR    bateu? +1 ponto?               │
-└──────────────── repete ──────────────────────┘
+│ 1. OBSERVE    the current state → sensors()  │
+│ 2. DECIDE     an action       → human or AI  │
+│ 3. ACT        advance one frame → step()     │
+│ 4. EVALUATE   crashed? +1 point?             │
+└──────────────── repeat ──────────────────────┘
 ```
 
-Esse mesmo ciclo — **observação → ação → recompensa** — é a base do aprendizado por reforço, a técnica usada também no pós-treinamento de LLMs.
+This same loop — **observation → action → reward** — is the basis of reinforcement learning, the technique also used in the post-training of LLMs.
 
 ---
 
-## Os três ingredientes que a IA precisa
+## The three ingredients the AI needs
 
-### 1. Observação: o que ela "vê"
+### 1. Observation: what it "sees"
 
-A IA não vê a tela. Ela recebe 6 números, calculados em `Jogo.sensores()`:
+The AI doesn't see the screen. It receives 6 numbers, calculated in `Game.sensors()`:
 
-| # | Sensor | Significado | Faixa |
+| # | Sensor | Meaning | Range |
 |---|---|---|---|
-| 1 | distância | Quão longe está o próximo obstáculo | 0 (colado) a 1 (borda da tela) |
-| 2 | largura | Largura do obstáculo | ~0,3 a ~0,9 |
-| 3 | altura | Altura do obstáculo | ~0,4 a ~0,9 |
-| 4 | elevação | Distância do obstáculo até o chão | 0 = cacto; > 0 = pássaro |
-| 5 | alt. dino | Altura do dino (está no ar?) | 0 = no chão |
-| 6 | velocidade | Velocidade atual do jogo | 0,4 no início, 1 no máximo |
+| 1 | distance | How far away the next obstacle is | 0 (right next to it) to 1 (edge of the screen) |
+| 2 | width | Width of the obstacle | ~0.3 to ~0.9 |
+| 3 | height | Height of the obstacle | ~0.4 to ~0.9 |
+| 4 | elevation | Distance from the obstacle to the ground | 0 = cactus; > 0 = bird |
+| 5 | dino height | Height of the dino (is it in the air?) | 0 = on the ground |
+| 6 | speed | Current game speed | 0.4 at the start, 1 at most |
 
-Todos os números estão **normalizados** (perto de 0 a 1). Redes neurais aprendem mal quando um número vale 800 e outro vale 0,02 — foi o mesmo motivo de usarmos `normalizar()` na Lição 1.
+All the numbers are **normalized** (close to 0 to 1). Neural networks learn poorly when one number is 800 and another is 0.02 — that was the same reason we used `normalize()` in Lesson 1.
 
-> 💡 **Escolher boas entradas é metade do trabalho.** Se esquecermos a velocidade, a IA não teria como saber que precisa pular mais cedo quando o jogo acelera.
+> 💡 **Choosing good inputs is half the work.** If we forgot the speed, the AI would have no way of knowing it needs to jump earlier when the game speeds up.
 
-### 2. Ação: o que ela pode fazer
+### 2. Action: what it can do
 
-Três opções: `NADA`, `PULAR` ou `ABAIXAR`. A rede terá **3 saídas**, e a maior vence.
+Three options: `NOTHING`, `JUMP` or `DUCK`. The network will have **3 outputs**, and the biggest one wins.
 
-### 3. Recompensa (ou *fitness*): como sabemos se foi bem
+### 3. Reward (or *fitness*): how we know it did well
 
-**+1 ponto por quadro sobrevivido.** Simples, e não diz *como* jogar — só o que é bom resultado. A IA vai ter que descobrir o resto.
+**+1 point per frame survived.** Simple, and it doesn't say *how* to play — only what a good result is. The AI will have to figure out the rest.
 
-> ⚠️ A recompensa define o que a IA aprende. Se déssemos ponto por pulo, ela aprenderia a pular sem parar. Esse problema — a IA otimizar a nota em vez do objetivo real — tem nome: *reward hacking*. Também acontece com LLMs.
-
----
-
-## Por que vários dinos ao mesmo tempo?
-
-O `Jogo` aceita `n_dinos`. Todos enfrentam **os mesmos obstáculos** na mesma partida, o que torna justa a comparação entre eles. Isso será essencial na próxima lição, em que 50 dinos competem para passar seus "genes" adiante.
-
-## Exercícios
-
-1. Quantos pontos você consegue? (Spoiler: a IA vai chegar a 5000.)
-2. Quando o primeiro pássaro aparece, qual o valor do sensor "elevação"? E para cada um dos 3 tipos de pássaro?
-3. No `dino/jogo.py`, mude `FORCA_PULO` para `-12`. O jogo continua possível?
-
-**Próxima lição:** [neuroevolução — 50 dinos evoluindo](../03-neuroevolucao/README.md)
+> ⚠️ The reward defines what the AI learns. If we gave points per jump, it would learn to jump nonstop. This problem — the AI optimizing the score instead of the real goal — has a name: *reward hacking*. It also happens with LLMs.
 
 ---
 
-## Trocando as figuras
+## Why many dinos at the same time?
 
-O dino, os cactos e o pássaro são desenhados em [`dino/sprites.py`](../../dino/sprites.py) como **texto**: `#` é um pixel pintado, `w` é branco e `.` é transparente. Mude os desenhos e crie o personagem que quiser.
+`Game` accepts `n_dinos`. They all face **the same obstacles** in the same match, which makes comparing them fair. This will be essential in the next lesson, where 50 dinos compete to pass on their "genes".
 
-Isso é **só visual**. Para o jogo, cada coisa continua sendo um retângulo (`rect` em `jogo.py`), e a colisão e os sensores usam esses retângulos. A IA nunca vê as figuras, só os 6 números. Por isso trocar o desenho não muda nada no aprendizado.
+## Exercises
 
+1. How many points can you get? (Spoiler: the AI will reach 5000.)
+2. When the first bird shows up, what is the value of the "elevation" sensor? And for each of the 3 kinds of bird (`bird_low`, `bird_mid`, `bird_high`)?
+3. In `dino/game.py`, change `JUMP_FORCE` to `-12`. Is the game still possible?
+
+**Next lesson:** [neuroevolution — 50 dinos evolving](../03-neuroevolution/README.md)
+
+---
+
+## Changing the pictures
+
+The dino, the cacti and the bird are drawn in [`dino/sprites.py`](../../dino/sprites.py) as **text**: `#` is a painted pixel, `w` is white and `.` is transparent. Change the drawings and create any character you want.
+
+This is **visual only**. For the game, each thing is still a rectangle (`rect` in `game.py`), and the collision and the sensors use those rectangles. The AI never sees the pictures, only the 6 numbers. That's why changing the drawing changes nothing in the learning.
