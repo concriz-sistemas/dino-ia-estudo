@@ -1,275 +1,277 @@
 """
-jogo.py — Uma versão simplificada do jogo do dinossauro do Chrome.
+game.py — A simplified version of Chrome's offline dinosaur game.
 
-O jogo foi escrito para suportar VÁRIOS dinossauros ao mesmo tempo,
-todos enfrentando os mesmos obstáculos. Isso é essencial para a
-neuroevolução: a população inteira joga a mesma partida, e assim a
-comparação entre eles é justa.
+The game supports MANY dinosaurs at once, all facing the same obstacles.
+That is essential for neuroevolution: the whole population plays the same
+match, so comparing them is fair.
 
-Rode este arquivo diretamente para jogar você mesmo:
-    python jogo.py
-Controles: ESPAÇO / ↑ = pular,  ↓ = abaixar,  R = reiniciar
+Run this file directly to play yourself:
+    python dino/game.py
+Controls: SPACE / ↑ = jump,  ↓ = duck,  R = restart
 """
 import random
 import pygame
 
 try:
     from dino import sprites
-except ImportError:  # rodando "python dino/jogo.py" direto
+except ImportError:  # running "python dino/game.py" directly
     import sprites
 
 # ---------------------------------------------------------------------------
-# Constantes do mundo
+# World constants
 # ---------------------------------------------------------------------------
-LARGURA, ALTURA = 800, 300
-CHAO_Y = 250              # coordenada y do chão (os pés do dino ficam aqui)
-GRAVIDADE = 1.0
-FORCA_PULO = -17          # velocidade vertical inicial do pulo (negativo = pra cima)
-VEL_INICIAL = 8           # pixels por quadro
-VEL_MAX = 20
-ACELERACAO = 0.003        # quanto a velocidade aumenta a cada quadro
+WIDTH, HEIGHT = 800, 300
+GROUND_Y = 250            # y coordinate of the ground (the dino's feet rest here)
+GRAVITY = 1.0
+JUMP_FORCE = -17          # initial vertical speed of a jump (negative = up)
+START_SPEED = 8           # pixels per frame
+MAX_SPEED = 20
+ACCELERATION = 0.003      # how much the speed grows every frame
 
-# Ações possíveis (é isso que a rede neural vai escolher)
-NADA, PULAR, ABAIXAR = 0, 1, 2
+# Possible actions (this is what the neural network chooses)
+NOTHING, JUMP, DUCK = 0, 1, 2
 
-COR_FUNDO = (247, 247, 247)
-COR_CHAO = (83, 83, 83)
-COR_OBSTACULO = (60, 60, 60)
-COR_NUVEM = (205, 205, 205)
+# The names of the 6 numbers returned by Game.sensors()
+SENSOR_NAMES = ["distance", "width", "height", "elevation", "dino height", "speed"]
+
+BG_COLOR = (247, 247, 247)
+GROUND_COLOR = (83, 83, 83)
+OBSTACLE_COLOR = (60, 60, 60)
+CLOUD_COLOR = (205, 205, 205)
 
 
 # ---------------------------------------------------------------------------
-# Dinossauro
+# Dinosaur
 # ---------------------------------------------------------------------------
 class Dino:
-    LARG_EM_PE, ALT_EM_PE = 40, 50
-    LARG_ABAIXADO, ALT_ABAIXADO = 55, 26
+    STANDING_W, STANDING_H = 40, 50
+    DUCKING_W, DUCKING_H = 55, 26
 
-    def __init__(self, cor=(83, 83, 83)):
+    def __init__(self, color=(83, 83, 83)):
         self.x = 60
-        self.pes = CHAO_Y          # y da base do dino
+        self.feet = GROUND_Y       # y of the bottom of the dino
         self.vy = 0.0
-        self.abaixado = False
-        self.vivo = True
-        self.pontos = 0            # quadros sobrevividos (vira o "fitness")
-        self.cor = cor
+        self.ducking = False
+        self.alive = True
+        self.score = 0             # frames survived (becomes the "fitness")
+        self.color = color
 
     @property
-    def no_chao(self):
-        return self.pes >= CHAO_Y
+    def on_ground(self):
+        return self.feet >= GROUND_Y
 
     @property
     def rect(self):
-        if self.abaixado and self.no_chao:
-            w, h = self.LARG_ABAIXADO, self.ALT_ABAIXADO
+        if self.ducking and self.on_ground:
+            w, h = self.DUCKING_W, self.DUCKING_H
         else:
-            w, h = self.LARG_EM_PE, self.ALT_EM_PE
-        return pygame.Rect(self.x, int(self.pes - h), w, h)
+            w, h = self.STANDING_W, self.STANDING_H
+        return pygame.Rect(self.x, int(self.feet - h), w, h)
 
-    def atualizar(self, acao):
-        if acao == PULAR and self.no_chao:
-            self.vy = FORCA_PULO
-        self.abaixado = (acao == ABAIXAR)
-        # Abaixar no ar faz o dino cair mais rápido (igual ao jogo original)
-        if self.abaixado and not self.no_chao:
+    def update(self, action):
+        if action == JUMP and self.on_ground:
+            self.vy = JUMP_FORCE
+        self.ducking = (action == DUCK)
+        # Ducking in the air makes the dino fall faster (like the original game)
+        if self.ducking and not self.on_ground:
             self.vy += 2
-        self.vy += GRAVIDADE
-        self.pes += self.vy
-        if self.pes >= CHAO_Y:
-            self.pes = CHAO_Y
+        self.vy += GRAVITY
+        self.feet += self.vy
+        if self.feet >= GROUND_Y:
+            self.feet = GROUND_Y
             self.vy = 0
 
 
 # ---------------------------------------------------------------------------
-# Obstáculos
+# Obstacles
 # ---------------------------------------------------------------------------
-# tipo: (largura, altura, distância da base até o chão)
-TIPOS_OBSTACULO = {
-    "cacto_pequeno": (20, 40, 0),
-    "cacto_grande": (30, 55, 0),
-    "cactos_grupo": (55, 40, 0),
-    "passaro_baixo": (40, 25, 10),   # tem que pular
-    "passaro_medio": (40, 25, 35),   # tem que abaixar
-    "passaro_alto": (40, 25, 60),    # pode ignorar
+# kind: (width, height, distance from its bottom to the ground)
+OBSTACLE_TYPES = {
+    "small_cactus": (20, 40, 0),
+    "big_cactus": (30, 55, 0),
+    "cactus_group": (55, 40, 0),
+    "bird_low": (40, 25, 10),     # must jump
+    "bird_mid": (40, 25, 35),     # must duck (or jump over it)
+    "bird_high": (40, 25, 60),    # can be ignored
 }
 
 
-class Obstaculo:
-    def __init__(self, tipo, x):
-        self.tipo = tipo
-        w, h, elevacao = TIPOS_OBSTACULO[tipo]
-        self.rect = pygame.Rect(x, CHAO_Y - elevacao - h, w, h)
+class Obstacle:
+    def __init__(self, kind, x):
+        self.kind = kind
+        w, h, elevation = OBSTACLE_TYPES[kind]
+        self.rect = pygame.Rect(x, GROUND_Y - elevation - h, w, h)
         self.x = float(x)
 
     @property
-    def eh_passaro(self):
-        return self.tipo.startswith("passaro")
+    def is_bird(self):
+        return self.kind.startswith("bird")
 
-    def mover(self, vel):
-        self.x -= vel
+    def move(self, speed):
+        self.x -= speed
         self.rect.x = int(self.x)
 
 
 # ---------------------------------------------------------------------------
-# O jogo em si
+# The game itself
 # ---------------------------------------------------------------------------
-class Jogo:
-    def __init__(self, n_dinos=1, semente=None, cores=None):
-        self.rng = random.Random(semente)
-        if cores is None:
-            cores = [self._cor_aleatoria() for _ in range(n_dinos)]
-        self.dinos = [Dino(cor) for cor in cores]
-        self.obstaculos = []
-        self.vel = VEL_INICIAL
-        self.quadro = 0
-        self.distancia = 0.0       # só para rolar o cenário (chão e nuvens)
-        self._proximo_gap = 0
+class Game:
+    def __init__(self, n_dinos=1, seed=None, colors=None):
+        self.rng = random.Random(seed)
+        if colors is None:
+            colors = [self._random_color() for _ in range(n_dinos)]
+        self.dinos = [Dino(color) for color in colors]
+        self.obstacles = []
+        self.speed = START_SPEED
+        self.frame = 0
+        self.distance = 0.0        # only used to scroll the scenery (ground and clouds)
+        self._next_gap = 0
 
-    def _cor_aleatoria(self):
+    def _random_color(self):
         return tuple(self.rng.randint(40, 200) for _ in range(3))
 
-    # ---- lógica ----------------------------------------------------------
-    def algum_vivo(self):
-        return any(d.vivo for d in self.dinos)
+    # ---- logic -------------------------------------------------------------
+    def any_alive(self):
+        return any(d.alive for d in self.dinos)
 
-    def _criar_obstaculo(self):
-        # Pássaros só aparecem depois que o jogo acelera um pouco
-        tipos = ["cacto_pequeno", "cacto_grande", "cactos_grupo"]
-        if self.vel > 10:
-            tipos += ["passaro_baixo", "passaro_medio", "passaro_alto"]
-        tipo = self.rng.choice(tipos)
-        self.obstaculos.append(Obstaculo(tipo, LARGURA + 10))
-        # distância até o próximo obstáculo cresce com a velocidade
-        self._proximo_gap = self.rng.randint(int(self.vel * 30), int(self.vel * 55))
+    def _spawn_obstacle(self):
+        # Birds only show up after the game speeds up a bit
+        kinds = ["small_cactus", "big_cactus", "cactus_group"]
+        if self.speed > 10:
+            kinds += ["bird_low", "bird_mid", "bird_high"]
+        kind = self.rng.choice(kinds)
+        self.obstacles.append(Obstacle(kind, WIDTH + 10))
+        # the gap to the next obstacle grows with the speed
+        self._next_gap = self.rng.randint(int(self.speed * 30), int(self.speed * 55))
 
-    def passo(self, acoes):
-        """Avança o jogo um quadro. `acoes` tem uma ação por dino."""
-        self.quadro += 1
+    def step(self, actions):
+        """Advances the game one frame. `actions` has one action per dino."""
+        self.frame += 1
 
-        for dino, acao in zip(self.dinos, acoes):
-            if dino.vivo:
-                dino.atualizar(acao)
+        for dino, action in zip(self.dinos, actions):
+            if dino.alive:
+                dino.update(action)
 
-        for obs in self.obstaculos:
-            obs.mover(self.vel)
-        self.obstaculos = [o for o in self.obstaculos if o.rect.right > 0]
+        for obs in self.obstacles:
+            obs.move(self.speed)
+        self.obstacles = [o for o in self.obstacles if o.rect.right > 0]
 
-        if not self.obstaculos or (LARGURA - self.obstaculos[-1].rect.right) > self._proximo_gap:
-            self._criar_obstaculo()
+        if not self.obstacles or (WIDTH - self.obstacles[-1].rect.right) > self._next_gap:
+            self._spawn_obstacle()
 
-        # colisões (hitbox levemente menor, para ser justo)
+        # collisions (slightly smaller hitbox, to be fair)
         for dino in self.dinos:
-            if not dino.vivo:
+            if not dino.alive:
                 continue
             hit = dino.rect.inflate(-8, -8)
-            if any(hit.colliderect(o.rect) for o in self.obstaculos):
-                dino.vivo = False
+            if any(hit.colliderect(o.rect) for o in self.obstacles):
+                dino.alive = False
             else:
-                dino.pontos += 1
+                dino.score += 1
 
-        self.distancia += self.vel
-        self.vel = min(VEL_MAX, self.vel + ACELERACAO)
+        self.distance += self.speed
+        self.speed = min(MAX_SPEED, self.speed + ACCELERATION)
 
-    # ---- o que a IA "enxerga" -------------------------------------------
-    def proximo_obstaculo(self, dino):
-        for o in self.obstaculos:
+    # ---- what the AI "sees" ------------------------------------------------
+    def next_obstacle(self, dino):
+        for o in self.obstacles:
             if o.rect.right > dino.x:
                 return o
         return None
 
-    def sensores(self, dino):
+    def sensors(self, dino):
         """
-        Transforma o estado do jogo em 6 números (normalizados ~0..1).
-        Estas são as ENTRADAS da rede neural. Escolher boas entradas é
-        metade do trabalho — experimente mudar isso depois!
+        Turns the game state into 6 numbers (normalized to roughly 0..1).
+        These are the INPUTS of the neural network. Choosing good inputs is
+        half the work — try changing them later!
         """
-        o = self.proximo_obstaculo(dino)
+        o = self.next_obstacle(dino)
         if o is None:
-            dist, larg, alt, elev = 1.0, 0.0, 0.0, 0.0
+            dist, width, height, elev = 1.0, 0.0, 0.0, 0.0
         else:
-            dist = (o.rect.left - (dino.x + Dino.LARG_EM_PE)) / LARGURA
-            larg = o.rect.width / 60
-            alt = o.rect.height / 60
-            elev = (CHAO_Y - o.rect.bottom) / 60      # 0 = no chão; >0 = pássaro no ar
-        altura_dino = (CHAO_Y - dino.pes) / 150       # 0 = no chão
-        vel = self.vel / VEL_MAX
-        return [dist, larg, alt, elev, altura_dino, vel]
+            dist = (o.rect.left - (dino.x + Dino.STANDING_W)) / WIDTH
+            width = o.rect.width / 60
+            height = o.rect.height / 60
+            elev = (GROUND_Y - o.rect.bottom) / 60     # 0 = on the ground; >0 = bird in the air
+        dino_height = (GROUND_Y - dino.feet) / 150     # 0 = on the ground
+        speed = self.speed / MAX_SPEED
+        return [dist, width, height, elev, dino_height, speed]
 
-    # ---- desenho ---------------------------------------------------------
-    def _desenhar_cenario(self, tela):
-        tela.fill(COR_FUNDO)
-        # Nuvens andam mais devagar que o chão (parece que estão longe)
+    # ---- drawing -----------------------------------------------------------
+    def _draw_scenery(self, screen):
+        screen.fill(BG_COLOR)
+        # Clouds move slower than the ground (they look far away)
         for x0, y in [(100, 50), (420, 80), (700, 40), (950, 70)]:
-            x = (x0 - self.distancia * 0.15) % (LARGURA + 150) - 75
-            tela.blit(sprites.figura("nuvem", sprites.NUVEM, COR_NUVEM, (60, 15)), (x, y))
-        pygame.draw.line(tela, COR_CHAO, (0, CHAO_Y), (LARGURA, CHAO_Y), 2)
-        # Pedrinhas no chão, rolando na velocidade do jogo
+            x = (x0 - self.distance * 0.15) % (WIDTH + 150) - 75
+            screen.blit(sprites.sprite("cloud", sprites.CLOUD, CLOUD_COLOR, (60, 15)), (x, y))
+        pygame.draw.line(screen, GROUND_COLOR, (0, GROUND_Y), (WIDTH, GROUND_Y), 2)
+        # Pebbles on the ground, scrolling at the game's speed
         for i in range(40):
-            x = (i * 53 + i * i * 7 - self.distancia) % (LARGURA + 20) - 10
-            y = CHAO_Y + 5 + (i * 37) % 12
-            pygame.draw.line(tela, COR_CHAO, (x, y), (x + 2 + i % 4, y), 1)
+            x = (i * 53 + i * i * 7 - self.distance) % (WIDTH + 20) - 10
+            y = GROUND_Y + 5 + (i * 37) % 12
+            pygame.draw.line(screen, GROUND_COLOR, (x, y), (x + 2 + i % 4, y), 1)
 
-    def _desenhar_obstaculo(self, tela, o):
-        tamanho = o.rect.size
-        if o.tipo == "cactos_grupo":
-            img = sprites.grupo_de_cactos(COR_OBSTACULO, tamanho)
-        elif o.eh_passaro:
-            asa = (self.quadro // 10) % 2
-            img = sprites.figura(f"passaro{asa}", [sprites.PASSARO_1, sprites.PASSARO_2][asa],
-                                 COR_OBSTACULO, tamanho)
+    def _draw_obstacle(self, screen, o):
+        size = o.rect.size
+        if o.kind == "cactus_group":
+            img = sprites.cactus_group(OBSTACLE_COLOR, size)
+        elif o.is_bird:
+            wing = (self.frame // 10) % 2
+            img = sprites.sprite(f"bird{wing}", [sprites.BIRD_1, sprites.BIRD_2][wing],
+                                 OBSTACLE_COLOR, size)
         else:
-            img = sprites.figura("cacto", sprites.CACTO, COR_OBSTACULO, tamanho)
-        tela.blit(img, o.rect)
+            img = sprites.sprite("cactus", sprites.CACTUS, OBSTACLE_COLOR, size)
+        screen.blit(img, o.rect)
 
-    def _desenhar_dino(self, tela, d, alfa):
-        perna = (self.quadro // 6) % 2
-        if not d.vivo:
-            nome, mapa = "bateu", sprites.DINO_BATEU
-        elif not d.no_chao:
-            nome, mapa = "pulando", sprites.DINO_PULANDO
-        elif d.abaixado:
-            nome, mapa = f"abaixado{perna}", [sprites.DINO_ABAIXADO_1, sprites.DINO_ABAIXADO_2][perna]
+    def _draw_dino(self, screen, d, alpha):
+        leg = (self.frame // 6) % 2
+        if not d.alive:
+            name, pixel_map = "dead", sprites.DINO_DEAD
+        elif not d.on_ground:
+            name, pixel_map = "jumping", sprites.DINO_JUMP
+        elif d.ducking:
+            name, pixel_map = f"ducking{leg}", [sprites.DINO_DUCK_1, sprites.DINO_DUCK_2][leg]
         else:
-            nome, mapa = f"correndo{perna}", [sprites.DINO_CORRENDO_1, sprites.DINO_CORRENDO_2][perna]
-        tela.blit(sprites.figura(nome, mapa, d.cor, d.rect.size, alfa), d.rect)
+            name, pixel_map = f"running{leg}", [sprites.DINO_RUN_1, sprites.DINO_RUN_2][leg]
+        screen.blit(sprites.sprite(name, pixel_map, d.color, d.rect.size, alpha), d.rect)
 
-    def desenhar(self, tela, fonte, linhas_info=(), destacar=None):
-        self._desenhar_cenario(tela)
+    def draw(self, screen, font, info_lines=(), highlight=None):
+        self._draw_scenery(screen)
 
-        for o in self.obstaculos:
-            self._desenhar_obstaculo(tela, o)
+        for o in self.obstacles:
+            self._draw_obstacle(screen, o)
 
-        # Com muitos dinos, eles ficam meio transparentes para dar para ver a multidão.
-        # Com um só, ele aparece inteiro, e continua na tela depois de bater.
-        sozinho = len(self.dinos) == 1
+        # With many dinos, they are half transparent so you can see the crowd.
+        # With a single one, it is drawn solid and stays on screen after crashing.
+        alone = len(self.dinos) == 1
         for d in self.dinos:
-            if d is not destacar and (d.vivo or sozinho):
-                self._desenhar_dino(tela, d, 255 if sozinho else 110)
-        if destacar is not None and (destacar.vivo or sozinho):
-            self._desenhar_dino(tela, destacar, 255)
+            if d is not highlight and (d.alive or alone):
+                self._draw_dino(screen, d, 255 if alone else 110)
+        if highlight is not None and (highlight.alive or alone):
+            self._draw_dino(screen, highlight, 255)
 
-        # Linha do "sensor": do dino destacado até o obstáculo que ele está olhando
-        if destacar is not None and destacar.vivo:
-            o = self.proximo_obstaculo(destacar)
+        # "Sensor" line: from the highlighted dino to the obstacle it is looking at
+        if highlight is not None and highlight.alive:
+            o = self.next_obstacle(highlight)
             if o:
-                pygame.draw.line(tela, (230, 80, 80), destacar.rect.center, o.rect.center, 1)
+                pygame.draw.line(screen, (230, 80, 80), highlight.rect.center, o.rect.center, 1)
 
         y = 8
-        for linha in linhas_info:
-            tela.blit(fonte.render(linha, True, (40, 40, 40)), (10, y))
+        for line in info_lines:
+            screen.blit(font.render(line, True, (40, 40, 40)), (10, y))
             y += 20
 
 
 # ---------------------------------------------------------------------------
-# Modo humano: jogue você mesmo para sentir a dificuldade
+# Human mode: play yourself to feel the difficulty
 # ---------------------------------------------------------------------------
-def jogar_manual():
+def play_manual():
     pygame.init()
-    tela = pygame.display.set_mode((LARGURA, ALTURA))
-    pygame.display.set_caption("Dino — modo humano")
-    fonte = pygame.font.SysFont("monospace", 16)
-    relogio = pygame.time.Clock()
-    jogo = Jogo(1, cores=[(83, 83, 83)])
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Dino — human mode")
+    font = pygame.font.SysFont("monospace", 16)
+    clock = pygame.time.Clock()
+    game = Game(1, colors=[(83, 83, 83)])
 
     while True:
         for e in pygame.event.get():
@@ -277,30 +279,29 @@ def jogar_manual():
                 pygame.quit()
                 return
             if e.type == pygame.KEYDOWN and e.key == pygame.K_r:
-                jogo = Jogo(1, cores=[(83, 83, 83)])
+                game = Game(1, colors=[(83, 83, 83)])
 
-        teclas = pygame.key.get_pressed()
-        acao = NADA
-        if teclas[pygame.K_SPACE] or teclas[pygame.K_UP]:
-            acao = PULAR
-        elif teclas[pygame.K_DOWN]:
-            acao = ABAIXAR
+        keys = pygame.key.get_pressed()
+        action = NOTHING
+        if keys[pygame.K_SPACE] or keys[pygame.K_UP]:
+            action = JUMP
+        elif keys[pygame.K_DOWN]:
+            action = DUCK
 
-        if jogo.algum_vivo():
-            jogo.passo([acao])
-        info = [f"Pontos: {jogo.dinos[0].pontos}", f"Velocidade: {jogo.vel:.1f}"]
-        if not jogo.algum_vivo():
-            info.append("GAME OVER — aperte R")
-        # Mostra os 6 números que a IA "enxerga" — os mesmos que você vê com os olhos
-        nomes = ["distância", "largura", "altura", "elevação", "alt. dino", "velocidade"]
-        valores = jogo.sensores(jogo.dinos[0])
+        if game.any_alive():
+            game.step([action])
+        info = [f"Score: {game.dinos[0].score}", f"Speed: {game.speed:.1f}"]
+        if not game.any_alive():
+            info.append("GAME OVER — press R")
+        # Shows the 6 numbers the AI "sees" — the same things you see with your eyes
+        values = game.sensors(game.dinos[0])
         info.append("")
-        info.append("O que a IA enxerga:")
-        info += [f"  {n:<10} {v:5.2f}" for n, v in zip(nomes, valores)]
-        jogo.desenhar(tela, fonte, info, destacar=jogo.dinos[0])
+        info.append("What the AI sees:")
+        info += [f"  {n:<11} {v:5.2f}" for n, v in zip(SENSOR_NAMES, values)]
+        game.draw(screen, font, info, highlight=game.dinos[0])
         pygame.display.flip()
-        relogio.tick(60)
+        clock.tick(60)
 
 
 if __name__ == "__main__":
-    jogar_manual()
+    play_manual()

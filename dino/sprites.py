@@ -1,16 +1,16 @@
 """
-sprites.py — As figuras do jogo, desenhadas em "pixel art" como texto.
+sprites.py — The game's figures, drawn as "pixel art" in plain text.
 
-Cada figura é uma lista de linhas: '#' = pixel pintado, 'w' = pixel branco
-(o olho), '.' = transparente. Edite à vontade para criar seus próprios
-personagens: o tamanho da figura na tela é ajustado sozinho.
+Each figure is a list of rows: '#' = painted pixel, 'w' = white pixel
+(the eye), '.' = transparent. Edit them freely to create your own
+characters: the on-screen size is adjusted automatically.
 
-Importante: isto é SÓ visual. A colisão continua usando os retângulos de
-jogo.py, então mudar as figuras não muda o que a IA aprende.
+Important: this is ONLY visual. Collisions still use the rectangles in
+game.py, so changing the figures does not change what the AI learns.
 """
 import pygame
 
-DINO_CORRENDO_1 = [
+DINO_RUN_1 = [
     "...........#########..",
     "..........##w########.",
     "..........###########.",
@@ -33,26 +33,26 @@ DINO_CORRENDO_1 = [
     "....##................",
 ]
 
-DINO_CORRENDO_2 = DINO_CORRENDO_1[:16] + [
+DINO_RUN_2 = DINO_RUN_1[:16] + [
     "....###..##...........",
     "....#....##...........",
     "....##.....#..........",
     "...........##.........",
 ]
 
-DINO_PULANDO = DINO_CORRENDO_1[:16] + [
+DINO_JUMP = DINO_RUN_1[:16] + [
     "....###..##...........",
     "....##....#...........",
     "....#.....#...........",
     "....##....##..........",
 ]
 
-DINO_BATEU = [linha.replace("w", ".") for linha in DINO_PULANDO]
-DINO_BATEU[1] = "..........#w.w#######."
-DINO_BATEU[2] = "..........##w########."
-DINO_BATEU[3] = "..........#w.w#######."
+DINO_DEAD = [row.replace("w", ".") for row in DINO_JUMP]
+DINO_DEAD[1] = "..........#w.w#######."
+DINO_DEAD[2] = "..........##w########."
+DINO_DEAD[3] = "..........#w.w#######."
 
-DINO_ABAIXADO_1 = [
+DINO_DUCK_1 = [
     "...................##########.",
     "#..........#######.##w#######.",
     "##....#######################.",
@@ -67,14 +67,14 @@ DINO_ABAIXADO_1 = [
     "....##........................",
 ]
 
-DINO_ABAIXADO_2 = DINO_ABAIXADO_1[:8] + [
+DINO_DUCK_2 = DINO_DUCK_1[:8] + [
     "....###...##..................",
     "....#.....##..................",
     "....##......#.................",
     "............##................",
 ]
 
-CACTO = [
+CACTUS = [
     "....##....",
     "...####...",
     "...####.#.",
@@ -97,7 +97,7 @@ CACTO = [
     "...####...",
 ]
 
-PASSARO_1 = [
+BIRD_1 = [
     "......#.................",
     "......##................",
     "......###...............",
@@ -111,7 +111,7 @@ PASSARO_1 = [
     "..........######........",
 ]
 
-PASSARO_2 = [
+BIRD_2 = [
     "........................",
     "........................",
     "........................",
@@ -128,7 +128,7 @@ PASSARO_2 = [
     "......##................",
 ]
 
-NUVEM = [
+CLOUD = [
     "..........######........",
     "........##......##......",
     "...####.#.........#.....",
@@ -137,43 +137,43 @@ NUVEM = [
     "#######################.",
 ]
 
-BRANCO = (255, 255, 255)
+WHITE = (255, 255, 255)
 _cache = {}
 
 
-def _desenhar_mapa(mapa, cor):
-    """Transforma o mapa de texto numa Surface do pygame, 1 pixel por caractere."""
-    largura = max(len(linha) for linha in mapa)
-    surf = pygame.Surface((largura, len(mapa)), pygame.SRCALPHA)
-    for y, linha in enumerate(mapa):
-        for x, c in enumerate(linha):
+def _render_map(pixel_map, color):
+    """Turns the text map into a pygame Surface, 1 pixel per character."""
+    width = max(len(row) for row in pixel_map)
+    surf = pygame.Surface((width, len(pixel_map)), pygame.SRCALPHA)
+    for y, row in enumerate(pixel_map):
+        for x, c in enumerate(row):
             if c == "#":
-                surf.set_at((x, y), (*cor, 255))
+                surf.set_at((x, y), (*color, 255))
             elif c == "w":
-                surf.set_at((x, y), (*BRANCO, 255))
+                surf.set_at((x, y), (*WHITE, 255))
     return surf
 
 
-def figura(nome, mapa, cor, tamanho, alfa=255):
-    """Devolve a figura já no tamanho pedido (guardada em cache: desenhar é caro)."""
-    chave = (nome, cor, tamanho, alfa)
-    if chave not in _cache:
-        surf = pygame.transform.scale(_desenhar_mapa(mapa, cor), tamanho)
-        if alfa < 255:
-            surf.set_alpha(alfa)
-        _cache[chave] = surf
-    return _cache[chave]
+def sprite(name, pixel_map, color, size, alpha=255):
+    """Returns the figure at the requested size (cached: rendering is expensive)."""
+    key = (name, color, size, alpha)
+    if key not in _cache:
+        surf = pygame.transform.scale(_render_map(pixel_map, color), size)
+        if alpha < 255:
+            surf.set_alpha(alpha)
+        _cache[key] = surf
+    return _cache[key]
 
 
-def grupo_de_cactos(cor, tamanho):
-    """Três cactos de alturas diferentes lado a lado."""
-    chave = ("grupo", cor, tamanho)
-    if chave not in _cache:
-        w, h = tamanho
-        surf = pygame.Surface(tamanho, pygame.SRCALPHA)
-        larg = w // 3 + 2
+def cactus_group(color, size):
+    """Three cacti of different heights side by side."""
+    key = ("group", color, size)
+    if key not in _cache:
+        w, h = size
+        surf = pygame.Surface(size, pygame.SRCALPHA)
+        width = w // 3 + 2
         for i, frac in enumerate([0.8, 1.0, 0.7]):
-            alt = int(h * frac)
-            surf.blit(figura("cacto", CACTO, cor, (larg, alt)), (i * (w - larg) // 2, h - alt))
-        _cache[chave] = surf
-    return _cache[chave]
+            height = int(h * frac)
+            surf.blit(sprite("cactus", CACTUS, color, (width, height)), (i * (w - width) // 2, h - height))
+        _cache[key] = surf
+    return _cache[key]

@@ -1,19 +1,19 @@
 """
-Lição 2 — Jogue você mesmo e veja, no canto da tela, os 6 números
-que a IA vai receber no lugar dos olhos.
+Lesson 2 — Play yourself and see, in the corner of the screen, the 6 numbers
+the AI will receive instead of eyes.
 
-Rode a partir da raiz do repositório:
-    python licoes/02-o-ambiente/jogar.py
+Run from the repository root:
+    python lessons/02-the-environment/play.py
 
-Controles: ESPAÇO / ↑ = pular,  ↓ = abaixar,  R = reiniciar
+Controls: SPACE / ↑ = jump,  ↓ = duck,  R = restart
 """
 import os
 import sys
 
-# Permite importar o pacote `dino/` que está na raiz do repositório
+# Lets us import the `dino/` package that lives at the repository root
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from dino.jogo import jogar_manual
+from dino.game import play_manual
 
 if __name__ == "__main__":
-    jogar_manual()
+    play_manual()
