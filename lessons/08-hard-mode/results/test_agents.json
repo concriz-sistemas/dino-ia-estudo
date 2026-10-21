@@ -1,0 +1,173 @@
+{
+ "lesson 3: neuroevolution champion": {
+  "original game": {
+   "scores": [
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000
+   ],
+   "mean": 5000.0,
+   "crashed_into": {}
+  },
+  "hard game": {
+   "scores": [
+    1031,
+    831,
+    794,
+    1066,
+    784,
+    1015,
+    1251,
+    761,
+    771,
+    997
+   ],
+   "mean": 930.1,
+   "crashed_into": {
+    "bird_staircase": 4,
+    "bird_tunnel": 5,
+    "bird_pair": 1
+   }
+  }
+ },
+ "lesson 4: reinforcement learning (PPO)": {
+  "original game": {
+   "scores": [
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000
+   ],
+   "mean": 5000.0,
+   "crashed_into": {}
+  },
+  "hard game": {
+   "scores": [
+    1031,
+    831,
+    788,
+    799,
+    779,
+    1015,
+    1249,
+    761,
+    771,
+    997
+   ],
+   "mean": 902.1,
+   "crashed_into": {
+    "bird_staircase": 3,
+    "bird_tunnel": 5,
+    "bird_pair": 2
+   }
+  }
+ },
+ "lesson 5: imitation student": {
+  "original game": {
+   "scores": [
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000
+   ],
+   "mean": 5000.0,
+   "crashed_into": {}
+  },
+  "hard game": {
+   "scores": [
+    1033,
+    831,
+    789,
+    1069,
+    780,
+    1015,
+    1249,
+    913,
+    779,
+    999
+   ],
+   "mean": 945.7,
+   "crashed_into": {
+    "bird_staircase": 4,
+    "bird_tunnel": 6
+   }
+  }
+ },
+ "lesson 8: student of the coach": {
+  "original game": {
+   "scores": [
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000
+   ],
+   "mean": 5000.0,
+   "crashed_into": {}
+  },
+  "hard game": {
+   "scores": [
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000,
+    5000
+   ],
+   "mean": 5000.0,
+   "crashed_into": {}
+  }
+ },
+ "a planner (search, no learning)": {
+  "original game": {
+   "scores": [
+    5000,
+    5000,
+    5000,
+    5000,
+    5000
+   ],
+   "mean": 5000.0,
+   "crashed_into": {}
+  },
+  "hard game": {
+   "scores": [
+    5000,
+    5000,
+    5000,
+    5000,
+    5000
+   ],
+   "mean": 5000.0,
+   "crashed_into": {}
+  }
+ }
+}
