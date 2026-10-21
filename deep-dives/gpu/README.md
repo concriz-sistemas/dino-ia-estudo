@@ -139,4 +139,4 @@ Using a trained LLM also costs about **2 operations per weight for each token it
 | In this study | lessons 1-5: small networks, the game | lessons 6-7: images and text in big batches |
 | Fixed cost per job | almost none | about 0.2 ms here: not worth it for tiny jobs |
 
-**Back to:** [the study home](../../README.md)
+**Next:** [chips, memory and quantization](../hardware/README.md) · **Back to:** [the study home](../../README.md)

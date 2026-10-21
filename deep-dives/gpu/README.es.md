@@ -139,4 +139,4 @@ Usar un LLM entrenado también cuesta unas **2 operaciones por peso por cada tok
 | En este estudio | lecciones 1-5: redes pequeñas, el juego | lecciones 6-7: imágenes y texto en lotes grandes |
 | Costo fijo por tarea | casi ninguno | unos 0.2 ms aquí: no vale la pena para tareas diminutas |
 
-**Volver a:** [la página principal del estudio](../../README.es.md)
+**Siguiente:** [chips, memoria y cuantización](../hardware/README.es.md) · **Volver a:** [la página principal del estudio](../../README.es.md)

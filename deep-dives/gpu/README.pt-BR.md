@@ -139,4 +139,4 @@ Usar um LLM treinado também custa cerca de **2 operações por peso para cada t
 | Neste estudo | lições 1-5: redes pequenas, o jogo | lições 6-7: imagens e texto em lotes grandes |
 | Custo fixo por tarefa | quase nenhum | cerca de 0,2 ms aqui: não compensa para tarefas minúsculas |
 
-**Voltar para:** [a página inicial do estudo](../../README.pt-BR.md)
+**Próximo:** [chips, memória e quantização](../hardware/README.pt-BR.md) · **Voltar para:** [a página inicial do estudo](../../README.pt-BR.md)
