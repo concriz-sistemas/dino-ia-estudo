@@ -24,7 +24,7 @@ This page builds on [Why GPUs?](../gpu/README.md). Specs change fast; the number
 
 | Kind | Examples | Memory the model can use | Memory speed | Good for |
 |---|---|---|---|---|
-| **Regular PC, CPU only** | Intel Core, AMD Ryzen, with DDR5 RAM | whatever RAM it has (32 GB is common) | ~80-100 GB/s | small models, and anything that isn't a big network |
+| **Regular PC, CPU only** | Intel Core, AMD Ryzen, with DDR3, DDR4 or DDR5 RAM | whatever RAM it has (8-16 GB on older PCs, 32 GB is common today) | ~26 GB/s (DDR3) · ~51 GB/s (DDR4) · ~80-100 GB/s (DDR5) | small models, and anything that isn't a big network |
 | **Gaming graphics card** | NVIDIA GeForce RTX 4060 / 4090 / 5090, AMD Radeon | 8 / 24 / 32 GB on the card | 272 / 1,008 / 1,792 GB/s | fast, as long as the model fits in the card's memory |
 | **Unified memory** (CPU and GPU share one pool) | Apple M-series chips, AMD Ryzen AI Max | up to ~75% of the total on a Mac by default; up to 96 GB on the Ryzen AI Max+ 395 | 120 GB/s (M4) to 546 GB/s (M4 Max); 256 GB/s (Ryzen AI Max+ 395) | big models on one machine, more slowly than a big graphics card |
 | **Data-center GPU** | NVIDIA H100 / B200, AMD Instinct MI300X | 80 / 192 / 192 GB | 3,350 / 8,000 / 5,300 GB/s | training and serving big models, in groups of thousands |
@@ -59,7 +59,9 @@ tokens per second  ≤  memory speed  ÷  model size
 
 | Device | 7B model, 4 bits (3.5 GB) | 70B model, 4 bits (35 GB) |
 |---|---|---|
-| Regular PC, CPU only | 26 tokens/s at most | doesn't fit in 32 GB |
+| Regular PC, CPU only, DDR3 | 7 tokens/s at most | doesn't fit in 16 GB |
+| Regular PC, CPU only, DDR4 | 15 | doesn't fit in 32 GB |
+| Regular PC, CPU only, DDR5 | 26 | doesn't fit in 32 GB |
 | GeForce RTX 4090 | 288 | doesn't fit |
 | Mac mini M4 (this study) | 34 | doesn't fit |
 | Mac with M4 Max, 128 GB | 156 | 16 |
@@ -71,7 +73,7 @@ These are ceilings; real speeds are lower. Published tests of 70B models in 4 bi
 
 This is why the **kind of memory** matters:
 
-- **DDR5 / LPDDR5** (regular RAM): large and cheap, but a narrow door.
+- **DDR3 / DDR4 / DDR5 / LPDDR5** (regular RAM): large and cheap, but a narrow door. Each generation roughly doubles the width: an older PC with DDR3 still runs small models, just more slowly (for this study's lessons 1-5, any of them is plenty).
 - **GDDR6 / GDDR7** (gaming cards): soldered right next to the graphics chip, with a much wider door, but only 8 to 32 GB.
 - **HBM** (data-center GPUs): stacks of memory chips placed right next to the GPU, connected by thousands of wires. The widest door of all, and very expensive.
 - **Unified memory** (Apple, AMD Ryzen AI Max): one big pool shared by CPU and GPU, so a big model fits, with a door in between the other two.
@@ -159,6 +161,6 @@ The device specs come from these pages (consulted in 2026):
 - Apple M4 (Mac mini): [Apple's Mac mini specs](https://images.apple.com/ie/mac-mini/specs/)
 - Apple M4 Max: [MacRumors](https://macrumors.com/2024/10/30/apple-announces-m4-max-chip); macOS GPU memory limit: [APXML](https://apxml.com/hardware/apple-m4-max-128gb)
 - AMD Ryzen AI Max+ 395: [AMD product page](https://www.amd.com/en/products/processors/desktops/ryzen/ryzen-ai-halo/ryzen-ai-max-plus-395.html), [ar-go.co tests](https://ar-go.co/blog/amd-ryzen-ai-max-395-local-llm/)
-- DDR5 bandwidth: [HotHardware](https://hothardware.com/news/ddr5-memory-spec-finalized-2tb-64gbps)
+- DDR5 bandwidth: [HotHardware](https://hothardware.com/news/ddr5-memory-spec-finalized-2tb-64gbps). DDR3 and DDR4: the standard theoretical calculation for two memory channels, transfers per second × 8 bytes × 2 (DDR3-1600: 1,600 million × 8 × 2 ≈ 25.6 GB/s; DDR4-3200 ≈ 51.2 GB/s)
 
 **Back to:** [the study home](../../README.md)

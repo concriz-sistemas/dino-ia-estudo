@@ -31,6 +31,8 @@ os.makedirs(OUTPUT, exist_ok=True)
 
 # name, kind, memory the model can use (GB), memory bandwidth (GB/s). Sources: README, section 2.
 DEVICES = [
+    ("PC, CPU only (DDR3)", "pc", 16, 26),
+    ("PC, CPU only (DDR4)", "pc", 32, 51),
     ("PC, CPU only (DDR5)", "pc", 32, 90),
     ("GeForce RTX 4060", "gaming", 8, 272),
     ("GeForce RTX 4090", "gaming", 24, 1008),

@@ -24,7 +24,7 @@ Esta página parte de [¿Por qué GPU?](../gpu/README.es.md). Las especificacion
 
 | Tipo | Ejemplos | Memoria que puede usar el modelo | Velocidad de la memoria | Bueno para |
 |---|---|---|---|---|
-| **PC normal, solo CPU** | Intel Core, AMD Ryzen, con RAM DDR5 | la RAM que tenga (32 GB es común) | ~80-100 GB/s | modelos pequeños, y todo lo que no sea una red grande |
+| **PC normal, solo CPU** | Intel Core, AMD Ryzen, con RAM DDR3, DDR4 o DDR5 | la RAM que tenga (8-16 GB en PC más antiguas, 32 GB es común hoy) | ~26 GB/s (DDR3) · ~51 GB/s (DDR4) · ~80-100 GB/s (DDR5) | modelos pequeños, y todo lo que no sea una red grande |
 | **Tarjeta gráfica para videojuegos** | NVIDIA GeForce RTX 4060 / 4090 / 5090, AMD Radeon | 8 / 24 / 32 GB en la tarjeta | 272 / 1 008 / 1 792 GB/s | rápida, siempre que el modelo quepa en la memoria de la tarjeta |
 | **Memoria unificada** (CPU y GPU comparten una sola reserva) | chips Apple de la serie M, AMD Ryzen AI Max | hasta ~75 % del total en una Mac, por defecto; hasta 96 GB en el Ryzen AI Max+ 395 | 120 GB/s (M4) a 546 GB/s (M4 Max); 256 GB/s (Ryzen AI Max+ 395) | modelos grandes en una sola máquina, más despacio que una tarjeta gráfica grande |
 | **GPU de centro de datos** | NVIDIA H100 / B200, AMD Instinct MI300X | 80 / 192 / 192 GB | 3 350 / 8 000 / 5 300 GB/s | entrenar y servir modelos grandes, en grupos de miles |
@@ -59,7 +59,9 @@ tokens por segundo  ≤  velocidad de la memoria  ÷  tamaño del modelo
 
 | Dispositivo | Modelo de 7B, 4 bits (3.5 GB) | Modelo de 70B, 4 bits (35 GB) |
 |---|---|---|
-| PC normal, solo CPU | 26 tokens/s como máximo | no cabe en 32 GB |
+| PC normal, solo CPU, DDR3 | 7 tokens/s como máximo | no cabe en 16 GB |
+| PC normal, solo CPU, DDR4 | 15 | no cabe en 32 GB |
+| PC normal, solo CPU, DDR5 | 26 | no cabe en 32 GB |
 | GeForce RTX 4090 | 288 | no cabe |
 | Mac mini M4 (este estudio) | 34 | no cabe |
 | Mac con M4 Max, 128 GB | 156 | 16 |
@@ -71,7 +73,7 @@ Estos son techos; las velocidades reales son menores. Las pruebas publicadas de 
 
 Por eso importa el **tipo de memoria**:
 
-- **DDR5 / LPDDR5** (RAM normal): grande y barata, pero una puerta angosta.
+- **DDR3 / DDR4 / DDR5 / LPDDR5** (RAM normal): grande y barata, pero una puerta angosta. Cada generación más o menos duplica el ancho: una PC más antigua, con DDR3, todavía ejecuta modelos pequeños, solo que más despacio (para las lecciones 1 a 5 de este estudio, cualquiera alcanza).
 - **GDDR6 / GDDR7** (tarjetas para videojuegos): soldada justo al lado del chip gráfico, con una puerta mucho más ancha, pero solo de 8 a 32 GB.
 - **HBM** (GPU de centro de datos): pilas de chips de memoria colocadas justo al lado de la GPU, conectadas por miles de cables. La puerta más ancha de todas, y muy cara.
 - **Memoria unificada** (Apple, AMD Ryzen AI Max): una sola reserva grande compartida por la CPU y la GPU, así que un modelo grande cabe, con una puerta de anchura intermedia entre las otras dos.
@@ -159,6 +161,6 @@ Las especificaciones de los dispositivos salen de estas páginas (consultadas en
 - Apple M4 (Mac mini): [especificaciones de la Mac mini de Apple](https://images.apple.com/ie/mac-mini/specs/)
 - Apple M4 Max: [MacRumors](https://macrumors.com/2024/10/30/apple-announces-m4-max-chip); límite de memoria de la GPU en macOS: [APXML](https://apxml.com/hardware/apple-m4-max-128gb)
 - AMD Ryzen AI Max+ 395: [página del producto de AMD](https://www.amd.com/en/products/processors/desktops/ryzen/ryzen-ai-halo/ryzen-ai-max-plus-395.html), [pruebas de ar-go.co](https://ar-go.co/blog/amd-ryzen-ai-max-395-local-llm/)
-- Ancho de banda de DDR5: [HotHardware](https://hothardware.com/news/ddr5-memory-spec-finalized-2tb-64gbps)
+- Ancho de banda de DDR5: [HotHardware](https://hothardware.com/news/ddr5-memory-spec-finalized-2tb-64gbps). DDR3 y DDR4: el cálculo teórico estándar para dos canales de memoria, transferencias por segundo × 8 bytes × 2 (DDR3-1600: 1600 millones × 8 × 2 ≈ 25.6 GB/s; DDR4-3200 ≈ 51.2 GB/s)
 
 **Volver a:** [la página principal del estudio](../../README.es.md)
