@@ -16,7 +16,7 @@ python deep-dives/hardware/memory.py
 python deep-dives/hardware/quantization.py
 ```
 
-This page builds on [Why GPUs?](../gpu/README.md). Specs change fast; the numbers here are published specs at the time of writing (sources at the end).
+This page builds on [Why GPUs?](../gpu/README.md). Specs change fast; the numbers here are published specs at the time of writing.
 
 ---
 
@@ -146,21 +146,5 @@ This is how people run big models at home: models are often shared already quant
 | Why does memory matter? | The model must fit (weights × bytes per weight), and writing each token reads all the weights, so memory speed caps the speed. |
 | Can I train an LLM at home? | A tiny one, like lesson 7's, yes. A large one, no: memory and time are out of reach. |
 | What is quantization? | Rounding the weights to fewer bits: 8 bits is almost free, 4 bits costs a little, 2 bits breaks the model. |
-
----
-
-## Sources
-
-The device specs come from these pages (consulted in 2026):
-
-- NVIDIA H100: [InferenceX chip page](https://inferencex.semianalysis.com/chips/h100), [Tübingen ML cloud spec sheet](https://portal.mlcloud.uni-tuebingen.de/user-guide/_specs/gpu/h100/)
-- NVIDIA B200: [Jarvislabs](https://jarvislabs.ai/ai-faqs/nvidia-b200-specs), [Spheron](https://www.spheron.network/blog/nvidia-b200-complete-guide/)
-- AMD Instinct MI300X: [AMD data sheet](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/data-sheets/amd-instinct-mi300x-data-sheet.pdf), [Lenovo Press](https://lenovopress.lenovo.com/LP1943)
-- GeForce RTX 5090: [TechPowerUp](https://www.techpowerup.com/gpu-specs/geforce-rtx-5090.c4216)
-- GeForce RTX 4060 and 4090: [GPUprix comparison](https://gpuprix.com/es/compare/geforce-rtx-4060-vs-geforce-rtx-4090)
-- Apple M4 (Mac mini): [Apple's Mac mini specs](https://images.apple.com/ie/mac-mini/specs/)
-- Apple M4 Max: [MacRumors](https://macrumors.com/2024/10/30/apple-announces-m4-max-chip); macOS GPU memory limit: [APXML](https://apxml.com/hardware/apple-m4-max-128gb)
-- AMD Ryzen AI Max+ 395: [AMD product page](https://www.amd.com/en/products/processors/desktops/ryzen/ryzen-ai-halo/ryzen-ai-max-plus-395.html), [ar-go.co tests](https://ar-go.co/blog/amd-ryzen-ai-max-395-local-llm/)
-- DDR5 bandwidth: [HotHardware](https://hothardware.com/news/ddr5-memory-spec-finalized-2tb-64gbps). DDR3 and DDR4: the standard theoretical calculation for two memory channels, transfers per second × 8 bytes × 2 (DDR3-1600: 1,600 million × 8 × 2 ≈ 25.6 GB/s; DDR4-3200 ≈ 51.2 GB/s)
 
 **Back to:** [the study home](../../README.md)

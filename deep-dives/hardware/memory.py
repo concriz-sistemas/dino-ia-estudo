@@ -2,7 +2,7 @@
 memory.py — Does a model fit in the memory of a computer, and how fast can it write there?
 
 Uses the published memory size and memory speed (bandwidth) of a few computers
-and chips (sources in the README) to answer two questions:
+and chips to answer two questions:
 
     1. Does the model fit?   size of the weights = number of weights × bytes per weight
     2. How fast can it write, at most?
@@ -29,7 +29,7 @@ FOLDER = os.path.dirname(os.path.abspath(__file__))
 OUTPUT = os.path.join(FOLDER, "charts")
 os.makedirs(OUTPUT, exist_ok=True)
 
-# name, kind, memory the model can use (GB), memory bandwidth (GB/s). Sources: README, section 2.
+# name, kind, memory the model can use (GB), memory bandwidth (GB/s).
 DEVICES = [
     ("PC, CPU only (DDR3)", "pc", 16, 26),
     ("PC, CPU only (DDR4)", "pc", 32, 51),

@@ -16,7 +16,7 @@ python deep-dives/hardware/memory.py
 python deep-dives/hardware/quantization.py
 ```
 
-Esta página parte de [Por que GPUs?](../gpu/README.pt-BR.md). As especificações mudam rápido; os números aqui são especificações publicadas na época em que foi escrita (fontes no final).
+Esta página parte de [Por que GPUs?](../gpu/README.pt-BR.md). As especificações mudam rápido; os números aqui são especificações publicadas na época em que foi escrita.
 
 ---
 
@@ -146,21 +146,5 @@ O [`quantization.py`](quantization.py) arredonda cada tabela de pesos do modelo 
 | Por que a memória importa? | O modelo precisa caber (pesos × bytes por peso), e escrever cada token lê todos os pesos, então a velocidade da memória limita a velocidade. |
 | Dá para treinar um LLM em casa? | Um minúsculo, como o da lição 7, sim. Um grande, não: memória e tempo estão fora do alcance. |
 | O que é quantização? | Arredondar os pesos para menos bits: 8 bits sai quase de graça, 4 bits custam um pouco, 2 bits quebram o modelo. |
-
----
-
-## Fontes
-
-As especificações dos aparelhos vêm destas páginas (consultadas em 2026):
-
-- NVIDIA H100: [página do chip no InferenceX](https://inferencex.semianalysis.com/chips/h100), [ficha técnica da ML cloud de Tübingen](https://portal.mlcloud.uni-tuebingen.de/user-guide/_specs/gpu/h100/)
-- NVIDIA B200: [Jarvislabs](https://jarvislabs.ai/ai-faqs/nvidia-b200-specs), [Spheron](https://www.spheron.network/blog/nvidia-b200-complete-guide/)
-- AMD Instinct MI300X: [ficha técnica da AMD](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/data-sheets/amd-instinct-mi300x-data-sheet.pdf), [Lenovo Press](https://lenovopress.lenovo.com/LP1943)
-- GeForce RTX 5090: [TechPowerUp](https://www.techpowerup.com/gpu-specs/geforce-rtx-5090.c4216)
-- GeForce RTX 4060 e 4090: [comparação no GPUprix](https://gpuprix.com/es/compare/geforce-rtx-4060-vs-geforce-rtx-4090)
-- Apple M4 (Mac mini): [especificações do Mac mini na Apple](https://images.apple.com/ie/mac-mini/specs/)
-- Apple M4 Max: [MacRumors](https://macrumors.com/2024/10/30/apple-announces-m4-max-chip); limite de memória da GPU no macOS: [APXML](https://apxml.com/hardware/apple-m4-max-128gb)
-- AMD Ryzen AI Max+ 395: [página do produto na AMD](https://www.amd.com/en/products/processors/desktops/ryzen/ryzen-ai-halo/ryzen-ai-max-plus-395.html), [testes do ar-go.co](https://ar-go.co/blog/amd-ryzen-ai-max-395-local-llm/)
-- Largura de banda da DDR5: [HotHardware](https://hothardware.com/news/ddr5-memory-spec-finalized-2tb-64gbps). DDR3 e DDR4: a conta teórica padrão para dois canais de memória, transferências por segundo × 8 bytes × 2 (DDR3-1600: 1.600 milhões × 8 × 2 ≈ 25,6 GB/s; DDR4-3200 ≈ 51,2 GB/s)
 
 **Voltar para:** [a página inicial do estudo](../../README.pt-BR.md)
