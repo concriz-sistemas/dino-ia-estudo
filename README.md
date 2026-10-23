@@ -303,6 +303,7 @@ Slower, more visual pages on topics that come up along the way:
 - [Weight, bias, activation and loss](lessons/01-neuron-and-gradient/concepts/README.md): each idea with an everyday analogy, a chart, an animation and a small example worked out by hand.
 - [Why GPUs?](deep-dives/gpu/README.md): what a neural network actually computes, CPU vs GPU measured on a Mac, and how much computing each lesson (and a large LLM) needs.
 - [Chips, memory and quantization](deep-dives/hardware/README.md): gaming cards, Apple and AMD chips, data-center GPUs; why memory size and speed matter; what a regular computer can run or train; and quantization, with an experiment on lesson 7's model.
+- [Today's LLMs and the harness around them](deep-dives/llm-and-harness/README.md): lesson 7's loop inside today's LLMs, how they are trained (pre-training, imitation, reinforcement), the harness that runs their tools, a toy agent, and lesson 7's model taught to call tools.
 
 ---
 

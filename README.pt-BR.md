@@ -305,6 +305,7 @@ Páginas mais calmas e visuais sobre assuntos que aparecem pelo caminho:
 - [Peso, viés, ativação e perda](lessons/01-neuron-and-gradient/concepts/README.pt-BR.md): cada ideia com uma analogia do dia a dia, um gráfico, uma animação e um exemplo pequeno calculado à mão.
 - [Por que GPUs?](deep-dives/gpu/README.pt-BR.md): o que uma rede neural calcula de fato, CPU × GPU medidos num Mac, e quanto processamento cada lição (e um LLM grande) precisa.
 - [Chips, memória e quantização](deep-dives/hardware/README.pt-BR.md): placas de jogos, chips da Apple e da AMD, GPUs de centro de dados; por que o tamanho e a velocidade da memória importam; o que um computador comum consegue rodar ou treinar; e quantização, com um experimento no modelo da lição 7.
+- [Os LLMs de hoje e o harness em volta deles](deep-dives/llm-and-harness/README.pt-BR.md): o laço da lição 7 dentro dos LLMs atuais, como eles são treinados (pré-treino, imitação, reforço), o harness que roda as ferramentas deles, um agente de brinquedo, e o modelo da lição 7 aprendendo a chamar ferramentas.
 
 ---
 

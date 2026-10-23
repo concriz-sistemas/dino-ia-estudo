@@ -305,6 +305,7 @@ Páginas más calmadas y visuales sobre temas que aparecen en el camino:
 - [Peso, sesgo, activación y pérdida](lessons/01-neuron-and-gradient/concepts/README.es.md): cada idea con una analogía cotidiana, un gráfico, una animación y un ejemplo pequeño calculado a mano.
 - [¿Por qué GPU?](deep-dives/gpu/README.es.md): qué calcula de verdad una red neuronal, CPU vs. GPU medidos en una Mac, y cuánto cómputo necesita cada lección (y un LLM grande).
 - [Chips, memoria y cuantización](deep-dives/hardware/README.es.md): tarjetas para juegos, chips de Apple y AMD, GPU de centro de datos; por qué importan el tamaño y la velocidad de la memoria; qué puede ejecutar o entrenar una computadora común; y la cuantización, con un experimento en el modelo de la lección 7.
+- [Los LLM de hoy y el harness que los rodea](deep-dives/llm-and-harness/README.es.md): el bucle de la lección 7 dentro de los LLM actuales, cómo se entrenan (preentrenamiento, imitación, refuerzo), el harness que ejecuta sus herramientas, un agente de juguete, y el modelo de la lección 7 aprendiendo a llamar herramientas.
 
 ---
 
